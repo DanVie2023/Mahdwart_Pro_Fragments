@@ -44,7 +44,7 @@ class MahdwartFragment : Fragment() {
         // Startposition setzen (z.B. Berlin)
         val mapController = map.controller
         mapController.setZoom(12.0)
-        val startPoint = GeoPoint(52.5200, 13.4050)
+        val startPoint = GeoPoint(53.59, 9.947)
         mapController.setCenter(startPoint)
     }
 
