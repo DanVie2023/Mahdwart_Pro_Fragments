@@ -43,19 +43,19 @@ class MahdwartFragment : Fragment() {
 
         // Startposition setzen (z.B. Berlin)
         val mapController = map.controller
-        mapController.setZoom(12.0)
-        val startPoint = GeoPoint(53.59, 9.947)
+        mapController.setZoom(18.0)
+        val startPoint = GeoPoint(53.595370, 9.947101)
         mapController.setCenter(startPoint)
     }
 
     override fun onResume() {
         super.onResume()
-        binding.map.onResume() // wichtig für OSM
+        binding.map.onResume() // important for OSM
     }
 
     override fun onPause() {
         super.onPause()
-        binding.map.onPause() // wichtig für OSM
+        binding.map.onPause() // important for OSM
     }
 
     override fun onDestroyView() {

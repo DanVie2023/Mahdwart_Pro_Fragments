@@ -6,6 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/butten_selected"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:cornerRadius="5dp"
+        android:layout_margin="30dp"
+        app:icon="@drawable/baseline_email_24"
+        android:layout_marginTop="20dp"
+        android:text="@string/Send_Mail_Button_Send"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
     <org.osmdroid.views.MapView
         android:id="@+id/map"
         android:layout_width="match_parent"

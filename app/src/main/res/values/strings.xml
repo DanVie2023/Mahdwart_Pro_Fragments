@@ -3,4 +3,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 <!--    Put the correct osm path in!!-->
     <string name="osmdroid_config">/data/data/.../cache/osmdroid/</string>
+    <string name="Send_TextInput_Subject">Subject</string>
+    <string name="Send_TextInput_Content">Content</string>
+    <string name="Send_Mail_Button_Send">Send</string>
 </resources>

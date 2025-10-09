@@ -1,18 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".SettingsFragment">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutstart"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         app:layout_constraintStart_toStartOf="parent"
+        android:padding="40dp"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent="0.5">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/TextViewEmailSubject"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/Send_TextInput_Subject"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/InputTextEmailSubject"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/TextViewEmailSubject" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/TextViewEmailBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/Send_TextInput_Content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/InputTextEmailSubject" />
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/InputTextEmailBody"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/TextViewEmailBody" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutend"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:text="SEND DIALOG" />
+        android:padding="40dp"
+        app:layout_constraintHorizontal_weight="1"
+        app:layout_constraintStart_toEndOf="@id/layoutstart"
+        app:layout_constraintWidth_default="percent"
+        app:layout_constraintWidth_percent="0.5">
+
+        <ListView
+            android:id="@+id/ListView_Emailaddress"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintHeight_percent="0.7"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/butten_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cornerRadius="5dp"
+            app:icon="@drawable/baseline_email_24"
+            android:layout_marginTop="20dp"
+            android:text="@string/Send_Mail_Button_Send"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ListView_Emailaddress" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

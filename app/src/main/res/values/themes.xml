@@ -2,8 +2,8 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.MahdwartProFragments" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <item name="colorPrimary">@color/fcsp_brown</item>
-        <item name="colorPrimaryVariant">@color/fcsp_red</item>
+        <item name="colorPrimary">@color/dark_yellow</item>
+        <item name="colorPrimaryVariant">@color/light_yellow</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
