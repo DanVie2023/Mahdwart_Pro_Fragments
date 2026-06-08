@@ -1,90 +1,188 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F5F7FB"
     tools:context=".SettingsFragment">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutstart"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardComposer"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="24dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/cardRecipients"
         app:layout_constraintStart_toStartOf="parent"
-        android:padding="40dp"
-        app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent="0.5">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.56"
+        app:strokeColor="#E8ECF4"
+        app:strokeWidth="1dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/TextViewEmailSubject"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/Send_TextInput_Subject"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="30dp">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="E-Mail verfassen"
+                android:textColor="#1E293B"
+                android:textSize="28sp"
+                android:textStyle="bold" />
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/InputTextEmailSubject"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/TextViewEmailSubject" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="28dp"
+                android:text="Write and send messages beautifully"
+                android:textColor="#64748B"
+                android:textSize="14sp"/>
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/TextViewEmailBody"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/Send_TextInput_Content"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/InputTextEmailSubject" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Subject"
+                app:boxBackgroundColor="#F8FAFC"
+                app:boxBackgroundMode="filled"
+                app:boxCornerRadiusBottomEnd="20dp"
+                app:boxCornerRadiusBottomStart="20dp"
+                app:boxCornerRadiusTopEnd="20dp"
+                app:boxCornerRadiusTopStart="20dp"
+                app:boxStrokeWidth="0dp"
+                app:hintTextColor="#94A3B8">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/InputTextEmailBody"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/TextViewEmailBody" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/InputTextEmailSubject"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="18dp"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"/>
+            </com.google.android.material.textfield.TextInputLayout>
+            
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="22dp"
+                android:layout_weight="1"
+                android:hint="Write your message..."
+                app:boxBackgroundColor="#F8FAFC"
+                app:boxBackgroundMode="filled"
+                app:boxCornerRadiusBottomEnd="24dp"
+                app:boxCornerRadiusBottomStart="24dp"
+                app:boxCornerRadiusTopEnd="24dp"
+                app:boxCornerRadiusTopStart="24dp"
+                app:boxStrokeWidth="0dp"
+                app:hintTextColor="#94A3B8">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/InputTextEmailBody"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="top"
+                    android:inputType="textMultiLine"
+                    android:minLines="12"
+                    android:padding="20dp"
+                    android:textColor="#0F172A"
+                    android:textColorHint="#94A3B8"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutend"
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardRecipients"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:padding="40dp"
-        app:layout_constraintHorizontal_weight="1"
-        app:layout_constraintStart_toEndOf="@id/layoutstart"
-        app:layout_constraintWidth_default="percent"
-        app:layout_constraintWidth_percent="0.5">
+        app:layout_constraintStart_toEndOf="@id/cardComposer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:strokeColor="#E8ECF4"
+        app:strokeWidth="1dp">
 
-        <ListView
-            android:id="@+id/ListView_Emailaddress"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintHeight_percent="0.7"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="30dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/butten_send"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:cornerRadius="5dp"
-            app:icon="@drawable/baseline_email_24"
-            android:layout_marginTop="20dp"
-            android:text="@string/Send_Mail_Button_Send"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ListView_Emailaddress" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Empfänger"
+                android:textColor="#1E293B"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="22dp"
+                android:text="Choose who receives the email"
+                android:textColor="#64748B"
+                android:textSize="14sp"/>
 
+            <TextView
+                android:id="@+id/listEmail"
+                android:layout_width="match_parent"
+                android:layout_height="533dp"
+                android:text="TextView" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_close"
+                    android:layout_width="wrap_content"
+                    android:layout_height="54dp"
+                    android:text="Abbrechen"
+                    android:textAllCaps="false"
+                    android:textColor="#334155"
+                    app:backgroundTint="#EEF2F7"
+                    app:cornerRadius="10dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/button_send"
+                    android:layout_width="wrap_content"
+                    android:layout_height="54dp"
+                    android:layout_marginStart="14dp"
+                    android:text="Senden"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:backgroundTint="#FFC507"
+                    app:cornerRadius="10dp"
+                    app:icon="@drawable/baseline_send_24"
+                    app:iconGravity="textStart"
+                    app:iconPadding="10dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>intlayout.widget.ConstraintLayout>
