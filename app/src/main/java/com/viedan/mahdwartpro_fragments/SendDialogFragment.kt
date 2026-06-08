@@ -1,23 +1,28 @@
 package com.viedan.mahdwartpro_fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import com.viedan.mahdwartpro_fragments.databinding.FragmentSendDialogBinding
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.viedan.mahdwartpro_fragments.databinding.ActivityMainBinding
 
-class SendDialogFragment : Fragment() {
-    private lateinit var binding: FragmentSendDialogBinding
+class MainActivity : AppCompatActivity() {
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        // Inflate the layout for this fragment
-        binding = FragmentSendDialogBinding.inflate(inflater, container, false)
-        return binding.root
+    private lateinit var binding: ActivityMainBinding
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.frame_content, MahdwartFragment())
+                .commit()
+        }
+
     }
-
 }
