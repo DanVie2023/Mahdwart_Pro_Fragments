@@ -1,0 +1,91 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.869665,
+          54.066902
+
+        ]
+      },
+      "properties": {
+        "WEA_Nr": 1,
+        "WEA_Typ": "Vestas V150 4.2 MW NH125m",
+        "Gemarkung": "Wasbek",
+        "Flur": 12,
+        "Flurstueck": "51"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+	  9.876643,
+          54.065944
+        ]
+      },
+      "properties": {
+        "WEA_Nr": 2,
+        "WEA_Typ": "Vestas V150 4.2 MW NH125m",
+        "Gemarkung": "Wasbek",
+        "Flur": 12,
+        "Flurstueck": "40"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.867768,
+          54.062395
+        ]
+      },
+      "properties": {
+        "WEA_Nr": 3,
+        "WEA_Typ": "Vestas V150 4.2 MW NH125m",
+        "Gemarkung": "Wasbek",
+        "Flur": 12,
+        "Flurstueck": "46"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.874658,
+          54.061626
+        ]
+      },
+      "properties": {
+        "WEA_Nr": 4,
+        "WEA_Typ": "Vestas V150 4.2 MW NH125m",
+        "Gemarkung": "Wasbek",
+        "Flur": 12,
+        "Flurstueck": "46"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          9.867873,
+          54.058664
+        ]
+      },
+      "properties": {
+        "WEA_Nr": 5,
+        "WEA_Typ": "Vestas V150 4.2 MW NH125m",
+        "Gemarkung": "Ehndorf",
+        "Flur": 3,
+        "Flurstueck": "7"
+      }
+    }
+  ]
+}

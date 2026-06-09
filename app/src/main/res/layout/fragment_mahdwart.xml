@@ -1,26 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/butten_selected"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:cornerRadius="5dp"
-        android:layout_margin="30dp"
-        app:icon="@drawable/baseline_email_24"
-        android:layout_marginTop="20dp"
-        android:text="@string/Send_Mail_Button_Send"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+    android:layout_height="match_parent"
+    tools:context=".MapFragment">
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/controlPanel"
+        android:layout_width="336dp"
+        android:layout_height="430dp"
+        android:layout_margin="16dp"
+
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="26dp"
+        app:cardElevation="10dp"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="340dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Task scheduler"
+                android:textColor="#0F172A"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:text="Choose polygons and execution date"
+                android:textColor="#64748B"
+                android:textSize="13sp" />
+
+            <CalendarView
+                android:id="@+id/calendarView3"
+                android:layout_width="295dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_selected"
+                android:layout_width="298dp"
+                android:layout_height="69dp"
+                android:layout_marginTop="14dp"
+
+                android:text="Execute for selected polygons"
+                android:textAllCaps="false"
+                android:textStyle="bold"
+
+                app:backgroundTint="#FFC507"
+                app:cornerRadius="18dp"
+                app:icon="@android:drawable/ic_media_play"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp" />
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
