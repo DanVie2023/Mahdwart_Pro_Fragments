@@ -1,6 +1,7 @@
 package com.viedan.mahdwartpro_fragments
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -28,6 +29,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 class MahdwartFragment : Fragment() {
 
     private lateinit var binding: FragmentMahdwartBinding
+    private lateinit var wtgs: ArrayList<String>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,6 +62,7 @@ class MahdwartFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupClickListeners()
 
         Configuration.getInstance().load(
             requireContext(),
@@ -168,23 +171,35 @@ class MahdwartFragment : Fragment() {
 
         map.invalidate()
 
-        binding.buttonSelected.setOnClickListener {
+        // WEA
+        loadWindmills(map)
+        wtgs = ArrayList(selectedWtgs)
+    }
 
+    private fun setupClickListeners(){
+        binding.buttonSelected.setOnClickListener {
             val fragment = SendDialogFragment()
 
             fragment.arguments = Bundle().apply {
-                putStringArrayList("wtgs", ArrayList(selectedWtgs))
+                putStringArrayList("wtgs", wtgs)
             }
 
             parentFragmentManager.beginTransaction()
                 .replace(R.id.frame_content, fragment)
                 .addToBackStack(null)
                 .commit()
-        }
 
-        // WEA
-        loadWindmills(map)
+            //Set list to 0
+            wtgs = arrayListOf<String>()
+        }
     }
+
+//    right arguments have to be linked , put Extra has to be declared
+//    private fun launchSendDialog(wtgs: ArrayList<String>){
+//        val intent = Intent(context, SendDialogFragment::class.java)
+//        intent.putExtra()
+//        startActivity(intent)
+//    }
 
     private fun loadWindmills(map: MapView) {
 

@@ -17,11 +17,11 @@ class SendDialogFragment : Fragment() {
     private lateinit var binding: FragmentSendDialogBinding
     private var wtgs: List<String> = emptyList()
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         wtgs = arguments?.getStringArrayList("wtgs") ?: emptyList()
-
 
     }
 
@@ -38,6 +38,10 @@ class SendDialogFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.InputTextEmailBody.setText(
+            wtgs.joinToString("\n")
+        )
+
+        binding.InputTextEmailSubject.setText(
             wtgs.joinToString("\n")
         )
 
