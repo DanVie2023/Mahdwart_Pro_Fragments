@@ -1,5 +1,6 @@
 package com.viedan.mahdwartpro_fragments
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -63,13 +64,9 @@ class SendDialogFragment : Fragment() {
             mIntent.putExtra(Intent.EXTRA_TEXT, message)
 
             try {
-                startActivity(Intent.createChooser(mIntent,"Send Email"))
-            } catch (e: Exception){
-                // Toast.makeText(
-                 //   requireContext(),
-                 //   e.message,
-                 //   LENGTH_LONG
-                //).show()
+                startActivity(mIntent)
+            } catch (e: ActivityNotFoundException){
+                Toast.makeText(requireContext(), "Keine E-Mail-App installiert.",Toast.LENGTH_LONG).show()
             }
         }
     }
