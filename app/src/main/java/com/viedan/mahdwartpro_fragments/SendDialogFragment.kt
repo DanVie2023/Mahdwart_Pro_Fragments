@@ -2,6 +2,8 @@ package com.viedan.mahdwartpro_fragments
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -12,6 +14,8 @@ import android.widget.Toast
 import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
 import com.viedan.mahdwartpro_fragments.databinding.FragmentSendDialogBinding
+import java.io.File
+import java.io.FileOutputStream
 
 class SendDialogFragment : Fragment() {
 
@@ -69,5 +73,36 @@ class SendDialogFragment : Fragment() {
                 Toast.makeText(requireContext(), "Keine E-Mail-App installiert.",Toast.LENGTH_LONG).show()
             }
         }
+    }
+
+    //create a pdf-file
+    private fun createPdf(){
+
+        val pdfDocument = PdfDocument()
+
+        val pageinfo = PdfDocument.PageInfo.Builder(
+            595, //A4 with 72dpi
+            842,
+            1
+        ).create()
+
+        //Drawing Area
+        val page = pdfDocument.startPage(pageinfo)
+
+        val canvas = page.canvas
+        val paint = Paint()
+
+        paint.textSize = 18f
+
+        canvas.drawText("First PDF-Line", 50f, 50f, paint)
+        canvas.drawText("Test", 50f, 50f, paint)
+
+        pdfDocument.finishPage(page)
+
+        // Save File to "Android/data/<Package Name>/files/MyPDF.pdf
+        val file = File(requireContext().getExternalFilesDir(null), "MyPDF.pdf")
+
+        pdfDocument.writeTo(FileOutputStream(file))
+        pdfDocument.close()
     }
 }
