@@ -104,5 +104,6 @@ class SendDialogFragment : Fragment() {
 
         pdfDocument.writeTo(FileOutputStream(file))
         pdfDocument.close()
+
     }
 }
