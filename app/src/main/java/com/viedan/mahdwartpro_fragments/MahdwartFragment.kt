@@ -1,7 +1,6 @@
 package com.viedan.mahdwartpro_fragments
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
@@ -23,7 +22,6 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 import android.graphics.drawable.BitmapDrawable
 import android.widget.Toast.LENGTH_LONG
-import com.google.android.material.bottomsheet.BottomSheetDialog
 
 
 class MahdwartFragment : Fragment() {
