@@ -73,7 +73,7 @@ class MahdwartFragment : Fragment() {
         map.setMultiTouchControls(true)
 
 
-        // POLYGONS
+// POLYGONS
         val geoJsonString = requireContext().assets
             .open("edited_fields.geojson")
             .bufferedReader()
@@ -81,28 +81,34 @@ class MahdwartFragment : Fragment() {
 
         val geoJson = JSONObject(geoJsonString)
         val features = geoJson.getJSONArray("features")
-        val originalColors = mutableMapOf<Polygon, Int>()
 
+        val originalColors = mutableMapOf<Polygon, Int>()
         val selectedWtgs = mutableSetOf<String>()
 
         for (i in 0 until features.length()) {
 
             val feature = features.getJSONObject(i)
-
             val geometry = feature.getJSONObject("geometry")
             val props = feature.optJSONObject("properties")
 
-            val type = geometry.getString("type")
+            if (geometry.getString("type") != "MultiPolygon") continue
 
-            if (type == "LineString") {
+            val wtg = props?.optString("wtg") ?: "unknown"
+            val color = getColor(wtg)
 
-                val coords = geometry.getJSONArray("coordinates")
+            val multiPolygon = geometry.getJSONArray("coordinates")
+
+            for (p in 0 until multiPolygon.length()) {
+
+                val polygonCoords = multiPolygon.getJSONArray(p)
+
+                val outerRing = polygonCoords.getJSONArray(0)
 
                 val points = mutableListOf<GeoPoint>()
 
-                for (j in 0 until coords.length()) {
+                for (j in 0 until outerRing.length()) {
 
-                    val coord = coords.getJSONArray(j)
+                    val coord = outerRing.getJSONArray(j)
 
                     val lon = coord.getDouble(0)
                     val lat = coord.getDouble(1)
@@ -114,13 +120,8 @@ class MahdwartFragment : Fragment() {
                     points.add(points.first())
                 }
 
-                val wtg = props?.optString("WTG") ?: "unknown"
-
-                val color = getColor(wtg)
-
                 val polygon = Polygon(map)
-
-                polygon.setPoints(points)
+                polygon.points = points
 
                 polygon.fillColor = color.withAlpha(0x55)
                 polygon.strokeColor = color
@@ -134,10 +135,10 @@ class MahdwartFragment : Fragment() {
 
                     if (polygon.strokeColor == selectedColor) {
 
-                        val orig = originalColors[polygon]!!
+                        val original = originalColors[polygon] ?: color
 
-                        polygon.strokeColor = orig
-                        polygon.fillColor = orig.withAlpha(0x55)
+                        polygon.strokeColor = original
+                        polygon.fillColor = original.withAlpha(0x55)
 
                         selectedWtgs.remove(wtg)
 
