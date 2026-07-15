@@ -19,6 +19,14 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    packaging {
+        resources {
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/LICENSE.md"
+        }
+    }
+
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -50,6 +58,8 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.8.9")
     implementation("org.osmdroid:osmdroid-android:6.1.20")
     implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation("com.sun.mail:android-mail:1.6.7")
+    implementation("com.sun.mail:android-activation:1.6.7")
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.fragment)
