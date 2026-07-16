@@ -5,22 +5,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".MapFragment">
 
     <TextView
         android:id="@+id/title_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:background="@color/dark_yellow"
-        app:layout_constraintHeight="30dp"
+        android:layout_width="0dp"
+        android:layout_height="45dp"
+        android:background="#FFC507"
+        android:gravity="center"
         android:text="Windpark Wasbek-Ehndorf"
         android:textColor="#0F172A"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold"
-        />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
@@ -28,69 +28,175 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_text"
-        app:layout_constraintVertical_bias="1.0"/>
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
+
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/controlPanel"
-        android:layout_width="336dp"
-        android:layout_height="430dp"
+        android:layout_width="360dp"
+        android:layout_height="wrap_content"
         android:layout_margin="16dp"
-
+        android:layout_marginBottom="135dp"
         app:cardBackgroundColor="#FFFFFF"
-        app:cardCornerRadius="26dp"
-        app:cardElevation="10dp"
+        app:cardCornerRadius="15dp"
+        app:cardElevation="20dp"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text">
 
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
-            android:layout_width="340dp"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="18dp">
+            android:padding="12dp">
+
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Task scheduler"
+                android:layout_marginTop="8dp"
+                android:text="Planung einer neuen Mission"
                 android:textColor="#0F172A"
-                android:textSize="18sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                android:text="Choose polygons and execution date"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp"
+                android:text=" Datum auswählen"
                 android:textColor="#64748B"
-                android:textSize="13sp" />
+                android:textSize="15sp" />
+
 
             <CalendarView
                 android:id="@+id/calendarView3"
-                android:layout_width="295dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
+                android:layout_marginBottom="1dp"
+                android:focusedMonthDateColor="#FFC507"
+                android:selectedWeekBackgroundColor="#FFF3C4"
+                android:unfocusedMonthDateColor="#64748B" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:layout_marginBottom="8dp"
+                android:text=" Uhrzeit auswählen"
+                android:textColor="#64748B"
+                android:textSize="15sp" />
+
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="8dp">
+
+                <!-- Початок -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    app:cardBackgroundColor="#F8FAFC"
+                    app:cardCornerRadius="12dp"
+                    app:strokeColor="#E2E8F0"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="4dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Startzeit"
+                            android:textAlignment="center"
+                            android:textColor="#64748B"
+                            android:textSize="15sp" />
+
+                        <TimePicker
+                            android:id="@+id/timePickerStart"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:timePickerMode="spinner" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Кінець -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="150dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    app:cardBackgroundColor="#F8FAFC"
+                    app:cardCornerRadius="12dp"
+                    app:strokeColor="#E2E8F0"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical"
+                        android:padding="4dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:text="Endzeit"
+                            android:textAlignment="center"
+                            android:textColor="#64748B"
+                            android:textSize="15sp" />
+
+                        <TimePicker
+                            android:id="@+id/timePickerEnd"
+                            android:layout_width="match_parent"
+                            android:layout_height="0dp"
+                            android:layout_weight="1"
+                            android:timePickerMode="spinner" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_selected"
-                android:layout_width="298dp"
-                android:layout_height="69dp"
-                android:layout_marginTop="14dp"
-
-                android:text="Execute for selected polygons"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:text="Auftrag starten"
                 android:textAllCaps="false"
                 android:textStyle="bold"
-
                 app:backgroundTint="#FFC507"
-                app:cornerRadius="18dp"
+                app:cornerRadius="8dp"
                 app:icon="@android:drawable/ic_media_play"
                 app:iconGravity="textStart"
                 app:iconPadding="10dp" />
+
+
         </LinearLayout>
 
+
     </com.google.android.material.card.MaterialCardView>
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
