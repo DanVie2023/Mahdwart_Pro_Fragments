@@ -1,33 +1,40 @@
 package com.viedan.mahdwartpro_fragments
 
-import android.content.ActivityNotFoundException
-import android.content.Intent
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
-import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import android.widget.Toast.LENGTH_LONG
-import android.widget.Toast.makeText
+import androidx.fragment.app.Fragment
 import com.viedan.mahdwartpro_fragments.databinding.FragmentSendDialogBinding
-import java.io.File
-import java.io.FileOutputStream
+import java.util.Properties
+import javax.mail.Authenticator
+import javax.mail.Message
+import javax.mail.PasswordAuthentication
+import javax.mail.Session
+import javax.mail.Transport
+import javax.mail.internet.InternetAddress
+import javax.mail.internet.MimeMessage
+import android.widget.Toast
 
 class SendDialogFragment : Fragment() {
 
     private lateinit var binding: FragmentSendDialogBinding
     private var wtgs: List<String> = emptyList()
 
+    private var date: String = ""
+    private var startTime: String = ""
+    private var endTime: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         wtgs = arguments?.getStringArrayList("wtgs") ?: emptyList()
 
+        date = arguments?.getString("date") ?: ""
+
+        startTime = arguments?.getString("startTime") ?: ""
+
+        endTime = arguments?.getString("endTime") ?: ""
     }
 
     override fun onCreateView(
@@ -35,75 +42,126 @@ class SendDialogFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentSendDialogBinding.inflate(inflater, container, false)
+
+        binding = FragmentSendDialogBinding.inflate(
+            inflater,
+            container,
+            false
+        )
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.InputTextEmailBody.setText(
-            wtgs.joinToString("\n")
+        binding.InputTextEmailSubject.setText(
+            "Windpark Wasbek-Ehndorf"
         )
 
-        binding.InputTextEmailSubject.setText(
-            wtgs.joinToString("\n")
+        binding.InputTextEmailBody.setText(
+            buildString {
+
+                appendLine("Ein Wartungseinsatz wurde geplant.")
+                appendLine()
+                appendLine("Geplantes Datum:")
+                appendLine(date)
+                appendLine()
+                appendLine("Geplante Uhrzeit:")
+                appendLine("$startTime - $endTime")
+                appendLine()
+                appendLine("Ausgewählte Windenergieanlagen:")
+                appendLine()
+                wtgs.forEach {
+                    appendLine("• $it")
+                }
+                appendLine()
+                appendLine(
+                    "Bitte führen Sie die Wartungsarbeiten gemäß dem geplanten Zeitplan durch."
+                )
+                appendLine()
+                appendLine("Vielen Dank.")
+            }
         )
+
+        binding.buttonSend.setOnClickListener {
+            sendTestEmail()
+        }
 
         binding.buttonClose.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
-
-        binding.buttonSend.setOnClickListener {
-            val recipient = binding.listEmail.text.toString()
-            val subject = binding.InputTextEmailSubject.text.toString()
-            val message = binding.InputTextEmailBody.text.toString()
-
-            val mIntent = Intent(Intent.ACTION_SEND)
-
-            mIntent.data = Uri.parse("mailto:")
-            mIntent.type = "text/plain"
-            mIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
-            mIntent.putExtra(Intent.EXTRA_SUBJECT, subject)
-            mIntent.putExtra(Intent.EXTRA_TEXT, message)
-
-            try {
-                startActivity(mIntent)
-            } catch (e: ActivityNotFoundException){
-                Toast.makeText(requireContext(), "Keine E-Mail-App installiert.",Toast.LENGTH_LONG).show()
-            }
-        }
     }
 
-    //create a pdf-file
-    private fun createPdf(){
+    private fun sendTestEmail() {
 
-        val pdfDocument = PdfDocument()
+        Thread {
+            try {
 
-        val pageinfo = PdfDocument.PageInfo.Builder(
-            595, //A4 with 72dpi
-            842,
-            1
-        ).create()
+                val emailSubject = binding.InputTextEmailSubject.text.toString()
+                val emailBody = binding.InputTextEmailBody.text.toString()
 
-        //Drawing Area
-        val page = pdfDocument.startPage(pageinfo)
+                val properties = Properties()
+                properties["mail.smtp.host"] = "smtp.gmail.com"
+                properties["mail.smtp.port"] = "587"
+                properties["mail.smtp.auth"] = "true"
+                properties["mail.smtp.starttls.enable"] = "true"
 
-        val canvas = page.canvas
-        val paint = Paint()
+                val session =
+                    Session.getInstance(
+                        properties,
+                        object : Authenticator() {
 
-        paint.textSize = 18f
+                            override fun getPasswordAuthentication(): PasswordAuthentication {
 
-        canvas.drawText("First PDF-Line", 50f, 50f, paint)
-        canvas.drawText("Test", 50f, 50f, paint)
+                                return PasswordAuthentication(
+                                    "Mahdwart@gmail.com",
+                                    "ozes qscp asrd lbyz"
+                                )
+                            }
+                        }
+                    )
 
-        pdfDocument.finishPage(page)
+                val message = MimeMessage(session)
 
-        // Save File to "Android/data/<Package Name>/files/MyPDF.pdf
-        val file = File(requireContext().getExternalFilesDir(null), "MyPDF.pdf")
+                message.setFrom(
+                    InternetAddress(
+                        "Mahdwart@gmail.com"
+                    )
+                )
 
-        pdfDocument.writeTo(FileOutputStream(file))
-        pdfDocument.close()
+                message.setRecipients(
+                    Message.RecipientType.TO,
+                    "a.bohdan@e3-gmbh.de, d.vieler@e3-gmbh.de"
+                )
 
+                message.subject = emailSubject
+
+                message.setText(
+                    emailBody,
+                    "UTF-8"
+                )
+
+                Transport.send(message)
+                requireActivity()
+                    .runOnUiThread {
+
+                        Toast.makeText(
+                            requireContext(),
+                            "E-Mail erfolgreich gesendet",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+            } catch (e: Exception) {
+                requireActivity()
+                    .runOnUiThread {
+                        Toast.makeText(
+                            requireContext(),
+                            "Fehler: ${e.message}",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+            }
+        }.start()
     }
 }

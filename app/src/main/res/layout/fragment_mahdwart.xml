@@ -62,7 +62,6 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -71,7 +70,6 @@
                 android:text=" Datum auswählen"
                 android:textColor="#64748B"
                 android:textSize="15sp" />
-
 
             <CalendarView
                 android:id="@+id/calendarView3"
@@ -90,8 +88,6 @@
                 android:text=" Uhrzeit auswählen"
                 android:textColor="#64748B"
                 android:textSize="15sp" />
-
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -137,7 +133,6 @@
 
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Кінець -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="150dp"

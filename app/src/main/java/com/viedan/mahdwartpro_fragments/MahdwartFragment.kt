@@ -1,7 +1,7 @@
 package com.viedan.mahdwartpro_fragments
 
-import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,19 +15,21 @@ import androidx.preference.PreferenceManager
 import com.viedan.mahdwartpro_fragments.databinding.FragmentMahdwartBinding
 import org.json.JSONObject
 import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
+import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
-import android.graphics.drawable.BitmapDrawable
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.widget.TimePicker
 import android.widget.Toast.LENGTH_LONG
 
 
 class MahdwartFragment : Fragment() {
 
+
     private lateinit var binding: FragmentMahdwartBinding
-    private lateinit var wtgs: ArrayList<String>
+    private val selectedWtgs = mutableSetOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,27 +37,11 @@ class MahdwartFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentMahdwartBinding.inflate(inflater, container, false)
+        """binding.materialTimepickerView.setIs24HourView(true) """
         return binding.root
     }
 
-    private val colorMap = mutableMapOf<String, Int>()
 
-    @SuppressLint("NewApi")
-    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    private fun getColor(key: String): Int {
-
-        return colorMap.getOrPut(key) {
-
-            val seed = key.hashCode()
-            val random = java.util.Random(seed.toLong())
-
-            val r = random.nextInt(80, 220)
-            val g = random.nextInt(80, 220)
-            val b = random.nextInt(80, 220)
-
-            (0xFF shl 24) or (r shl 16) or (g shl 8) or b
-        }
-    }
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -73,8 +59,9 @@ class MahdwartFragment : Fragment() {
         map.setMultiTouchControls(true)
 
 
-// POLYGONS
-        val geoJsonString = requireContext().assets
+
+        val geoJsonString = requireContext()
+            .assets
             .open("edited_fields.geojson")
             .bufferedReader()
             .use { it.readText() }
@@ -82,72 +69,71 @@ class MahdwartFragment : Fragment() {
         val geoJson = JSONObject(geoJsonString)
         val features = geoJson.getJSONArray("features")
 
-        val originalColors = mutableMapOf<Polygon, Int>()
-        val selectedWtgs = mutableSetOf<String>()
-
         for (i in 0 until features.length()) {
 
             val feature = features.getJSONObject(i)
             val geometry = feature.getJSONObject("geometry")
             val props = feature.optJSONObject("properties")
 
-            if (geometry.getString("type") != "MultiPolygon") continue
+            if (geometry.getString("type") != "MultiPolygon")
+                continue
 
             val wtg = props?.optString("wtg") ?: "unknown"
-            val color = getColor(wtg)
-
             val multiPolygon = geometry.getJSONArray("coordinates")
 
             for (p in 0 until multiPolygon.length()) {
 
                 val polygonCoords = multiPolygon.getJSONArray(p)
-
                 val outerRing = polygonCoords.getJSONArray(0)
-
                 val points = mutableListOf<GeoPoint>()
 
                 for (j in 0 until outerRing.length()) {
 
                     val coord = outerRing.getJSONArray(j)
-
                     val lon = coord.getDouble(0)
                     val lat = coord.getDouble(1)
 
-                    points.add(GeoPoint(lat, lon))
+                    points.add(
+                        GeoPoint(lat, lon)
+                    )
                 }
 
-                if (points.isNotEmpty() && points.first() != points.last()) {
+                if (points.first() != points.last()) {
                     points.add(points.first())
                 }
 
                 val polygon = Polygon(map)
+
                 polygon.points = points
 
-                polygon.fillColor = color.withAlpha(0x55)
-                polygon.strokeColor = color
+                polygon.fillColor = 0x555993A7
+                polygon.strokeColor = 0xFF2A6274.toInt()
                 polygon.strokeWidth = 4f
-
-                originalColors[polygon] = color
 
                 polygon.setOnClickListener { _, _, _ ->
 
-                    val selectedColor = 0xFF00BFFF.toInt()
+                    val selectedBorder = 0xFFFFC107.toInt()
+                    val selectedFill = 0x55FFC107
 
-                    if (polygon.strokeColor == selectedColor) {
+                    if (polygon.strokeColor == selectedBorder) {
 
-                        val original = originalColors[polygon] ?: color
-
-                        polygon.strokeColor = original
-                        polygon.fillColor = original.withAlpha(0x55)
-
-                        selectedWtgs.remove(wtg)
+                        polygon.strokeColor = 0xFF2A6274.toInt()
+                        polygon.fillColor = 0x555993A7
+                        wtg.split(",")
+                            .map { it.trim() }
+                            .forEach {
+                                selectedWtgs.remove(it)
+                            }
 
                     } else {
 
-                        polygon.strokeColor = selectedColor
-                        polygon.fillColor = selectedColor.withAlpha(0x55)
-
-                        selectedWtgs.add(wtg)
+                        polygon.strokeColor = selectedBorder
+                        polygon.fillColor = selectedFill
+                        wtg.split(",")
+                            .map { it.trim() }
+                            .forEach {
+                                selectedWtgs.add(it)
+                            }
                     }
 
                     map.invalidate()
@@ -158,121 +144,156 @@ class MahdwartFragment : Fragment() {
             }
         }
 
-        // MAP POSITION
         map.controller.apply {
-
-            setZoom(15.0)
-
+            setZoom(16.0)
             setCenter(
-                GeoPoint(54.068055, 9.8672034)
+                GeoPoint(
+                    54.063065,
+                    9.878683
+                )
             )
         }
 
         map.invalidate()
-
-        // WEA
         loadWindmills(map)
-        wtgs = ArrayList(selectedWtgs)
+
     }
 
-    private fun setupClickListeners(){
+    private fun getSelectedDate(): String {
+        val calendar = java.util.Calendar.getInstance()
+        calendar.timeInMillis = binding.calendarView3.date
+
+        val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        val month = calendar.get(java.util.Calendar.MONTH) + 1
+        val year = calendar.get(java.util.Calendar.YEAR)
+
+        return "%02d.%02d.%d".format(day, month, year)
+    }
+
+    private fun getTime(timePicker: TimePicker): String {
+        return "%02d:%02d".format(
+            timePicker.hour,
+            timePicker.minute
+        )
+    }
+
+    private fun setupClickListeners() {
+
         binding.buttonSelected.setOnClickListener {
+
             val fragment = SendDialogFragment()
 
+            val date = getSelectedDate()
+
+            val startTime = getTime(binding.timePickerStart)
+
+            val endTime = getTime(binding.timePickerEnd)
+
+
             fragment.arguments = Bundle().apply {
-                putStringArrayList("wtgs", wtgs)
+
+                putStringArrayList(
+                    "wtgs",
+                    ArrayList(selectedWtgs)
+                )
+
+                putString(
+                    "date",
+                    date
+                )
+
+                putString(
+                    "startTime",
+                    startTime
+                )
+
+                putString(
+                    "endTime",
+                    endTime
+                )
             }
 
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.frame_content, fragment)
+
+            parentFragmentManager
+                .beginTransaction()
+                .replace(
+                    R.id.frame_content,
+                    fragment
+                )
                 .addToBackStack(null)
                 .commit()
-
-            //Set list to 0
-            wtgs = arrayListOf<String>()
         }
     }
 
-//    right arguments have to be linked , put Extra has to be declared
-//    private fun launchSendDialog(wtgs: ArrayList<String>){
-//        val intent = Intent(context, SendDialogFragment::class.java)
-//        intent.putExtra()
-//        startActivity(intent)
-//    }
-
     private fun loadWindmills(map: MapView) {
 
-        val json = requireContext().assets
-            .open("points_only.geojson")
-            .bufferedReader()
-            .use { it.readText() }
+        val json =
+            requireContext()
+                .assets
+                .open("points_only.geojson")
+                .bufferedReader()
+                .use { it.readText() }
 
         val geoJson = JSONObject(json)
-
         val features = geoJson.getJSONArray("features")
 
         for (i in 0 until features.length()) {
 
             val feature = features.getJSONObject(i)
-
             val geometry = feature.getJSONObject("geometry")
             val properties = feature.getJSONObject("properties")
 
-            val type = geometry.getString("type")
-
-            if (type == "Point") {
+            if (geometry.getString("type") == "Point") {
 
                 val coordinates = geometry.getJSONArray("coordinates")
-
                 val lon = coordinates.getDouble(0)
                 val lat = coordinates.getDouble(1)
-
                 val point = GeoPoint(lat, lon)
-
                 val weaNr = properties.optInt("WEA_Nr")
                 val weaType = properties.optString("WEA_Typ")
                 val gemarkung = properties.optString("Gemarkung")
                 val flur = properties.optInt("Flur")
                 val flurstueck = properties.optString("Flurstueck")
 
-                val drawable = ContextCompat.getDrawable(requireContext(), R.drawable.windmuhle)
+                val drawable = ContextCompat.getDrawable(requireContext(),R.drawable.windkraftanlage)
 
-                val scaled = drawable?.let {
-                    val bitmap = (it as BitmapDrawable).bitmap
-                    val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 60, 60, false)
-                    BitmapDrawable(resources, scaledBitmap)
-                }
+                val scaled =
+                    drawable?.let {
 
-                val marker = Marker(map).apply {
+                        val bitmap = (it as BitmapDrawable).bitmap
 
-                    position = point
+                        val scaledBitmap =
+                            Bitmap.createScaledBitmap(bitmap, 40, 40, false)
+                            BitmapDrawable(resources, scaledBitmap)
+                    }
 
-                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-
-                    title = "WEA $weaNr"
-
-                    icon = ContextCompat.getDrawable(
-                        requireContext(),
-                        R.drawable.windmuhle
-                    )
-                }
-
-                marker.icon = scaled
-
+                val marker =
+                    Marker(map).apply {
+                        position = point
+                        setAnchor(
+                            Marker.ANCHOR_CENTER,
+                            Marker.ANCHOR_BOTTOM
+                        )
+                        title = "WEA $weaNr"
+                        icon = scaled
+                    }
 
                 marker.setOnMarkerClickListener { _, _ ->
 
-                    Toast.makeText(
-                        requireContext(),
-                        """
-                        WEA: $weaNr
-                        Type: $weaType
-                        Gemarkung: $gemarkung
-                        Flur: $flur
-                        Flurstueck: $flurstueck
-                        """.trimIndent(),
-                        LENGTH_LONG
-                    ).show()
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle("WEA $weaNr")
+                        .setIcon(R.drawable.windkraftanlage)
+                        .setMessage(
+                            """
+                                Typ: $weaType
+                        
+                                Gemarkung: $gemarkung
+                                Flur: $flur
+                                Flurstück: $flurstueck
+                                """.trimIndent()
+                        )
+                        .setPositiveButton("Schließen", null)
+                        .show()
 
                     true
                 }
@@ -280,9 +301,6 @@ class MahdwartFragment : Fragment() {
                 map.overlays.add(marker)
             }
         }
-    }
-    private fun Int.withAlpha(alpha: Int): Int {
-        return (this and 0x00FFFFFF) or (alpha shl 24)
     }
 
     override fun onResume() {
