@@ -33,7 +33,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="E-Mail verfassen"
+                android:text="@string/send_title_createmail"
                 android:textColor="#1E293B"
                 android:textSize="28sp"
                 android:textStyle="bold" />
@@ -43,14 +43,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="28dp"
-                android:text="Write and send messages beautifully"
+                android:text="@string/send_title_subtitle"
                 android:textColor="#64748B"
                 android:textSize="14sp"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Subject"
+                android:hint="@string/send_subject_title"
                 app:boxBackgroundColor="#F8FAFC"
                 app:boxBackgroundMode="filled"
                 app:boxCornerRadiusBottomEnd="20dp"
@@ -76,7 +76,7 @@
                 android:layout_height="0dp"
                 android:layout_marginTop="22dp"
                 android:layout_weight="1"
-                android:hint="Write your message..."
+                android:hint="@string/send_content_hint"
                 app:boxBackgroundColor="#F8FAFC"
                 app:boxBackgroundMode="filled"
                 app:boxCornerRadiusBottomEnd="24dp"
@@ -128,7 +128,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Empfänger"
+                android:text="@string/send_email_recipient_title"
                 android:textColor="#1E293B"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -138,7 +138,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="22dp"
-                android:text="Choose who receives the email"
+                android:text="@string/send_email_recipient_subtitle"
                 android:textColor="#64748B"
                 android:textSize="14sp"/>
 
@@ -146,7 +146,7 @@
                 android:id="@+id/listEmail"
                 android:layout_width="match_parent"
                 android:layout_height="533dp"
-                android:text="TextView" />
+                android:text="@string/send_recipient_list_hint" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -159,7 +159,7 @@
                     android:id="@+id/button_close"
                     android:layout_width="wrap_content"
                     android:layout_height="54dp"
-                    android:text="Abbrechen"
+                    android:text="@string/send_button_return"
                     android:textAllCaps="false"
                     android:textColor="#334155"
                     app:backgroundTint="#EEF2F7"
@@ -170,7 +170,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="54dp"
                     android:layout_marginStart="14dp"
-                    android:text="Senden"
+                    android:text="@string/send_button_send"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"

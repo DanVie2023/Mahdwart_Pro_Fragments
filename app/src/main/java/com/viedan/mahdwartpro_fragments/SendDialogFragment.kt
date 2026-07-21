@@ -56,13 +56,14 @@ class SendDialogFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.InputTextEmailSubject.setText(
-            "Windpark Wasbek-Ehndorf"
+            "Windpark Wasbek-Ehndorf - Mahd-/Ernteereignis"
         )
 
         binding.InputTextEmailBody.setText(
             buildString {
-
-                appendLine("Ein Wartungseinsatz wurde geplant.")
+                appendLine("Sehr geehrte Damen und Herren,")
+                appendLine()
+                appendLine("im Windpark Wasbek-Ehndorf ist ein Mahd- oder Ernteereignis geplant.")
                 appendLine()
                 appendLine("Geplantes Datum:")
                 appendLine(date)
@@ -70,14 +71,14 @@ class SendDialogFragment : Fragment() {
                 appendLine("Geplante Uhrzeit:")
                 appendLine("$startTime - $endTime")
                 appendLine()
-                appendLine("Ausgewählte Windenergieanlagen:")
+                appendLine("Folgende Windenergieanlagen sind davon betroffen:")
                 appendLine()
                 wtgs.forEach {
                     appendLine("• $it")
                 }
                 appendLine()
                 appendLine(
-                    "Bitte führen Sie die Wartungsarbeiten gemäß dem geplanten Zeitplan durch."
+                    "Bitte entnehmen Sie die relevanten Informationen aus dem beiliegnden PDF-Dokument."
                 )
                 appendLine()
                 appendLine("Vielen Dank.")

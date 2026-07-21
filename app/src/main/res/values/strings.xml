@@ -1,9 +1,25 @@
 <resources>
     <string name="app_name">Mahdwart Pro - Fragments</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
 <!--    Put the correct osm path in!!-->
-    <string name="osmdroid_config">/data/data/.../cache/osmdroid/</string>
-    <string name="Send_TextInput_Subject">Subject</string>
-    <string name="Send_TextInput_Content">Content</string>
-    <string name="Send_Mail_Button_Send">Send</string>
+    <string name="osmdroid_config" translatable="false">/data/data/.../cache/osmdroid/</string>
+    <string name="Send_TextInput_Subject">Betreff</string>
+    <string name="Send_TextInput_Content">Inhalt</string>
+    <string name="Send_Mail_Button_Send">Versenden</string>
+    <string name="mp_title_bar_windfarm_name">Windpark Wasbek-Ehndorf</string>
+    <string name="mp_title_datetime_selection">Neues Mahd-/Ernteereignis</string>
+    <string name="mp_datetime_selection_title_date">Datum auswählen</string>
+    <string name="mp_datetime_selection_title_time">Uhrzeit auswählen</string>
+    <string name="mp_datetime_starttime">Startzeit</string>
+    <string name="mp_datetime_endtime">Endzeit</string>
+    <string name="mp_button_Start">Auswahl bestätigen</string>
+    <string name="send_title_createmail">E-Mail verfassen</string>
+    <string name="send_title_subtitle">Schöne Nachrichten verfassen und versenden</string>
+    <string name="send_subject_title">Betreff</string>
+    <string name="send_content_hint">Schreibe deine Nachricht...</string>
+    <string name="send_email_recipient_title">Empfänger</string>
+    <string name="send_email_recipient_subtitle">Wähle wer die E-Mail erhalten soll</string>
+    <string name="send_recipient_list_hint">Alina, hier sollte ich Emailadressen wählen können.</string>
+    <string name="send_button_return">Abbrechen</string>
+    <string name="send_button_send">Senden</string>
 </resources>

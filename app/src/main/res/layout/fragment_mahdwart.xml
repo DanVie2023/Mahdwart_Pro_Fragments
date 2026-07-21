@@ -14,7 +14,7 @@
         android:layout_height="45dp"
         android:background="#FFC507"
         android:gravity="center"
-        android:text="Windpark Wasbek-Ehndorf"
+        android:text="@string/mp_title_bar_windfarm_name"
         android:textColor="#0F172A"
         android:textSize="20sp"
         android:textStyle="bold"
@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Planung einer neuen Mission"
+                android:text="@string/mp_title_datetime_selection"
                 android:textColor="#0F172A"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -67,7 +67,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="8dp"
-                android:text=" Datum auswählen"
+                android:text="@string/mp_datetime_selection_title_date"
                 android:textColor="#64748B"
                 android:textSize="15sp" />
 
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="1dp"
                 android:layout_marginBottom="8dp"
-                android:text=" Uhrzeit auswählen"
+                android:text="@string/mp_datetime_selection_title_time"
                 android:textColor="#64748B"
                 android:textSize="15sp" />
 
@@ -117,7 +117,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Startzeit"
+                            android:text="@string/mp_datetime_starttime"
                             android:textAlignment="center"
                             android:textColor="#64748B"
                             android:textSize="15sp" />
@@ -153,7 +153,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="Endzeit"
+                            android:text="@string/mp_datetime_endtime"
                             android:textAlignment="center"
                             android:textColor="#64748B"
                             android:textSize="15sp" />
@@ -178,7 +178,7 @@
                 android:layout_height="56dp"
                 android:layout_marginTop="12dp"
                 android:layout_marginBottom="12dp"
-                android:text="Auftrag starten"
+                android:text="@string/mp_button_Start"
                 android:textAllCaps="false"
                 android:textStyle="bold"
                 app:backgroundTint="#FFC507"

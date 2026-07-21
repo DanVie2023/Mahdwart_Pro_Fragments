@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mahdwart Pro - Fragments</string>
+    <string name="Send_TextInput_Content">Повідомлення</string>
+    <string name="Send_Mail_Button_Send">Надіслати</string>
+    <string name="mp_title_bar_windfarm_name">Вітропарк «Васбек-Ендорф»</string>
+    <string name="mp_title_datetime_selection">Нова подія косіння / збирання врожаю</string>
+    <string name="mp_datetime_selection_title_date">Вибір дати</string>
+    <string name="mp_datetime_selection_title_time">Вибір часу</string>
+    <string name="mp_datetime_starttime">Час початку</string>
+    <string name="mp_datetime_endtime">Час завершення</string>
+    <string name="mp_button_Start">Підтвердити вибір</string>
+    <string name="Send_TextInput_Subject">Тема</string>
+    <string name="send_title_createmail">Створити електронний лист</string>
+    <string name="send_title_subtitle">Створюйте та надсилайте красиві повідомлення</string>
+    <string name="send_subject_title">Тема</string>
+    <string name="send_content_hint">Напишіть своє повідомлення...</string>
+    <string name="send_email_recipient_title">Одержувач</string>
+    <string name="send_recipient_list_hint">Аліно, тут я маю мати можливість вибрати адреси електронної пошти.</string>
+    <string name="send_button_return">Скасувати</string>
+    <string name="send_button_send">Надіслати</string>
+    <string name="send_email_recipient_subtitle">Виберіть, хто має отримати електронний лист.</string>
+</resources>
