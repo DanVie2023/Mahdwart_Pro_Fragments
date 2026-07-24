@@ -12,7 +12,7 @@
     <string name="mp_button_Start">Підтвердити вибір</string>
     <string name="Send_TextInput_Subject">Тема</string>
     <string name="send_title_createmail">Створити електронний лист</string>
-    <string name="send_title_subtitle">Створюйте та надсилайте красиві повідомлення</string>
+    <string name="send_title_subtitle">Пишіть і чудово надсилайте</string>
     <string name="send_subject_title">Тема</string>
     <string name="send_content_hint">Напишіть своє повідомлення...</string>
     <string name="send_email_recipient_title">Одержувач</string>

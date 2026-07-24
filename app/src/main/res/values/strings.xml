@@ -14,7 +14,7 @@
     <string name="mp_datetime_endtime">Endzeit</string>
     <string name="mp_button_Start">Auswahl bestätigen</string>
     <string name="send_title_createmail">E-Mail verfassen</string>
-    <string name="send_title_subtitle">Schöne Nachrichten verfassen und versenden</string>
+    <string name="send_title_subtitle">Schreibe und versende Nachrichten wundervoll</string>
     <string name="send_subject_title">Betreff</string>
     <string name="send_content_hint">Schreibe deine Nachricht...</string>
     <string name="send_email_recipient_title">Empfänger</string>
