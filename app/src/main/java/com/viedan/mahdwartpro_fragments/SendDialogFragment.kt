@@ -31,8 +31,17 @@ class SendDialogFragment : Fragment() {
     private lateinit var binding: FragmentSendDialogBinding
     private var wtgs: List<String> = emptyList()
     private var date: String = ""
+    private var datetoday: String = ""
+    private var startDate: String = ""
     private var startTime: String = ""
+    private var endDate: String = ""
     private var endTime: String = ""
+    private var flurstueck: String = ""
+    private var flur: String = ""
+    private var gemarkung: String = ""
+    private var bewirtschaftungsform: String = ""
+    private val testEreignisse: MutableList<List<String>> = mutableListOf()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,9 +50,25 @@ class SendDialogFragment : Fragment() {
 
         date = arguments?.getString("date") ?: ""
 
+        datetoday = java.time.LocalDate.now().toString()
+
+        startDate = "DateUnkown"
+
         startTime = arguments?.getString("startTime") ?: ""
 
+        endDate = "DateUnkown"
+
         endTime = arguments?.getString("endTime") ?: ""
+
+        flurstueck = "1"
+
+        flur = "1"
+
+        gemarkung = "1"
+
+        bewirtschaftungsform = "1"
+
+        testEreignisse.add(listOf(flurstueck, flur, gemarkung, bewirtschaftungsform, startDate, startTime, endDate, endTime))
     }
 
     override fun onCreateView(
@@ -113,7 +138,7 @@ class SendDialogFragment : Fragment() {
         Thread {
             try {
 
-                val pdfFile = generateEventPdf(requireContext())
+                val pdfFile = generateEventPdf(requireContext(), "Today", "Unkown",testEreignisse)
                 val emailSubject = binding.InputTextEmailSubject.text.toString()
                 val emailBody = binding.InputTextEmailBody.text.toString()
 
@@ -145,7 +170,7 @@ class SendDialogFragment : Fragment() {
                 message.setFrom(InternetAddress("Mahdwart@gmail.com"))
                 message.setRecipients(
                     Message.RecipientType.TO,
-                    "a.bohdan@e3-gmbh.de, d.vieler@e3-gmbh.de"
+                    "d.vieler@e3-gmbh.de"
                 )
                 message.subject = emailSubject
 
@@ -187,25 +212,61 @@ class SendDialogFragment : Fragment() {
         }.start()
     }
 
-    private fun generateEventPdf(context: Context): File {
+    private fun generateEventPdf(
+        context: Context,
+        meldungsdatum: String,
+        parkbetreuerin: String,
+        ereignisse: MutableList<List<String>>
+    ): File {
         val document = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create() // A4 bei 72dpi
+        val pageInfo = PdfDocument.PageInfo.Builder(612, 792, 1).create() // A4 bei 72dpi
         var page = document.startPage(pageInfo)
         var canvas = page.canvas
+
 
         val titlePaint = Paint().apply {
             color = Color.BLACK
             textSize = 16f
             isFakeBoldText = true
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+        }
+        val anlagePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 11f
+            isFakeBoldText = true
+            isAntiAlias = true
+            textAlign = Paint.Align.RIGHT
+        }
+        val subtitlePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 12f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
+        }
+        val labelPaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 10.5f
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
+        }
+        val valuePaint = Paint().apply {
+            color = Color.BLACK
+            textSize = 10.5f
+            isAntiAlias = true
+            textAlign = Paint.Align.LEFT
         }
         val headerPaint = Paint().apply {
             color = Color.BLACK
-            textSize = 12f
-            isFakeBoldText = true
+            textSize = 10.5f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
         }
-        val textPaint = Paint().apply {
+        val cellPaint = Paint().apply {
             color = Color.BLACK
-            textSize = 12f
+            textSize = 10f
+            isAntiAlias = true
+            textAlign = Paint.Align.CENTER
         }
         val linePaint = Paint().apply {
             color = Color.BLACK
@@ -213,44 +274,130 @@ class SendDialogFragment : Fragment() {
             style = Paint.Style.STROKE
         }
 
-        val marginLeft = 40f
-        val col1Width = 150f
-        val col2Width = 350f
-        val tableWidth = col1Width + col2Width
-        val rowHeight = 25f
-        val pageBottomLimit = 800f
+        // Layout-Constants
+        val marginLeft = 51f
+        val tableRight = 557f
 
-        var y = 50f
-        canvas.drawText("Windpark Wasbek-Ehndorf - Mahd-/Ernteereignis", marginLeft, y, titlePaint)
-        y += 40f
+        // Spaltenbreiten der Ereignistabelle (Summe = tableRight - marginLeft)
+        val wFlurstueck = 49f
+        val wFlur = 37f
+        val wGemarkung = 65f
+        val wBewirtschaftung = 80f
+        val wBeginnDatum = 73f
+        val wstartTime = 61f
+        val wEndeDatum = 76f
+        val wendTime = 65f
 
-        fun drawRow(col1: String, col2: String, bold: Boolean = false) {
-            canvas.drawRect(marginLeft, y, marginLeft + tableWidth, y + rowHeight, linePaint)
-            canvas.drawLine(marginLeft + col1Width, y, marginLeft + col1Width, y + rowHeight, linePaint)
-            canvas.drawText(col1, marginLeft + 5, y + 17, if (bold) headerPaint else textPaint)
-            canvas.drawText(col2, marginLeft + col1Width + 5, y + 17, if (bold) headerPaint else textPaint)
-            y += rowHeight
+        // colX[i] = linke Kante von Spalte i, colX[8] = rechte Tabellenkante
+        val colX = floatArrayOf(
+            marginLeft,
+            marginLeft + wFlurstueck,
+            marginLeft + wFlurstueck + wFlur,
+            marginLeft + wFlurstueck + wFlur + wGemarkung,
+            marginLeft + wFlurstueck + wFlur + wGemarkung + wBewirtschaftung,
+            marginLeft + wFlurstueck + wFlur + wGemarkung + wBewirtschaftung + wBeginnDatum,
+            marginLeft + wFlurstueck + wFlur + wGemarkung + wBewirtschaftung + wBeginnDatum + wstartTime,
+            marginLeft + wFlurstueck + wFlur + wGemarkung + wBewirtschaftung + wBeginnDatum + wstartTime + wEndeDatum,
+            tableRight
+        )
+
+        val titleRowH = 34f
+        val subtitleRowH = 26f
+        val infoRowH = 37f
+        val headerRow1H = 36f
+        val headerRow2H = 20f
+        val dataRowH = 19.7f
+        val pageBottomLimit = 792 - 40f
+
+        fun centeredText(text: String, left: Float, right: Float, baselineY: Float, paint: Paint) {
+            canvas.drawText(text, (left + right) / 2f, baselineY, paint)
         }
 
-        drawRow("Feld", "Wert", bold = true)
-        drawRow("Datum", date)
-        drawRow("Uhrzeit", "$startTime - $endTime")
+        /** Zeichnet den kompletten Formularkopf (Titel, Untertitel, Info-Zeile, Tabellenkopf) und
+         *  liefert die y-Position zurück, ab der die Datenzeilen beginnen. */
+        fun drawHeader(): Float {
+            var y = 40f
 
-        y += 20f
-        canvas.drawText("Betroffene Windenergieanlagen:", marginLeft, y, titlePaint.apply { textSize = 13f })
-        y += 20f
+            // "Anlage 3" oben rechts, über der Box
+            canvas.drawText("Anlage 3", tableRight, y, anlagePaint)
+            y += 20f
 
-        wtgs.forEach { wtg ->
-            // Neue Seite, falls kein Platz mehr ist
-            if (y + rowHeight > pageBottomLimit) {
+            // Titelzeile
+            canvas.drawRect(marginLeft, y, tableRight, y + titleRowH, linePaint)
+            centeredText("Windpark Wasbek-Ehndorf", marginLeft, tableRight, y + titleRowH / 2f + 6f, titlePaint)
+            y += titleRowH
+
+            // Untertitel
+            canvas.drawRect(marginLeft, y, tableRight, y + subtitleRowH, linePaint)
+            centeredText("Mitteilung über Mahd- / Ernteereignisse", marginLeft, tableRight, y + subtitleRowH / 2f + 4f, subtitlePaint)
+            y += subtitleRowH
+
+            // Info-Zeile: "Datum der Meldung:" | Wert | "Parkbetreuerin: (Vertreterin)" | Wert
+            canvas.drawRect(marginLeft, y, tableRight, y + infoRowH, linePaint)
+            canvas.drawLine(colX[2], y, colX[2], y + infoRowH, linePaint)
+            canvas.drawLine(colX[4], y, colX[4], y + infoRowH, linePaint)
+            canvas.drawLine(colX[5], y, colX[5], y + infoRowH, linePaint)
+
+            canvas.drawText("Datum der Meldung:", colX[0] + 4f, y + 21f, labelPaint)
+            canvas.drawText(datetoday, colX[2] + 4f, y + 21f, valuePaint)
+            canvas.drawText("Parkbetreuerin:", colX[4] + 4f, y + 15f, labelPaint)
+            canvas.drawText("(Vertreterin)", colX[4] + 4f, y + 29f, labelPaint)
+            canvas.drawText(parkbetreuerin, colX[5] + 4f, y + 21f, valuePaint)
+            y += infoRowH
+
+            // Header
+            val headerTotalH = headerRow1H + headerRow2H
+            canvas.drawRect(marginLeft, y, tableRight, y + headerTotalH, linePaint)
+            for (i in 1..3) canvas.drawLine(colX[i], y, colX[i], y + headerTotalH, linePaint) // Spalten 1-4
+            canvas.drawLine(colX[4], y, colX[4], y + headerTotalH, linePaint)
+            canvas.drawLine(colX[6], y, colX[6], y + headerTotalH, linePaint)
+            canvas.drawLine(colX[8], y, colX[8], y + headerTotalH, linePaint)
+            // horizontale Trennung nur unter "Mahd-/Erntebeginn" und "Mahd-/Ernteende"
+            canvas.drawLine(colX[4], y + headerRow1H, colX[8], y + headerRow1H, linePaint)
+            // Trennung Datum/Uhrzeit in der unteren Kopfzeile
+            canvas.drawLine(colX[5], y + headerRow1H, colX[5], y + headerTotalH, linePaint)
+            canvas.drawLine(colX[7], y + headerRow1H, colX[7], y + headerTotalH, linePaint)
+
+            centeredText("Flurstück", colX[0], colX[1], y + headerTotalH / 2f + 4f, headerPaint)
+            centeredText("Flur", colX[1], colX[2], y + headerTotalH / 2f + 4f, headerPaint)
+            centeredText("Gemarkung", colX[2], colX[3], y + headerTotalH / 2f + 4f, headerPaint)
+            centeredText("Bewirtschaftungs-", colX[3], colX[4], y + headerTotalH / 2f - 1f, headerPaint)
+            centeredText("form", colX[3], colX[4], y + headerTotalH / 2f + 12f, headerPaint)
+
+            centeredText("Mahd- / Erntebeginn", colX[4], colX[6], y + headerRow1H / 2f + 4f, headerPaint)
+            centeredText("Mahd- / Ernteende", colX[6], colX[8], y + headerRow1H / 2f + 4f, headerPaint)
+            centeredText("Datum", colX[4], colX[5], y + headerRow1H + headerRow2H / 2f + 4f, headerPaint)
+            centeredText("Uhrzeit", colX[5], colX[6], y + headerRow1H + headerRow2H / 2f + 4f, headerPaint)
+            centeredText("Datum", colX[6], colX[7], y + headerRow1H + headerRow2H / 2f + 4f, headerPaint)
+            centeredText("Uhrzeit", colX[7], colX[8], y + headerRow1H + headerRow2H / 2f + 4f, headerPaint)
+
+            return y + headerTotalH
+        }
+
+        var y = drawHeader()
+
+        // 25 rows, for more is an extra page added
+        val minRows = 25
+        val rowCount = maxOf(ereignisse.size, minRows)
+
+        for (i in 0 until rowCount) {
+            if (y + dataRowH > pageBottomLimit) {
                 document.finishPage(page)
                 page = document.startPage(pageInfo)
                 canvas = page.canvas
-                y = 50f
+                y = drawHeader() // Heading on every new page
             }
-            canvas.drawRect(marginLeft, y, marginLeft + tableWidth, y + rowHeight, linePaint)
-            canvas.drawText(wtg, marginLeft + 5, y + 17, textPaint)
-            y += rowHeight
+
+            canvas.drawRect(marginLeft, y, tableRight, y + dataRowH, linePaint)
+            for (idx in 1..7) canvas.drawLine(colX[idx], y, colX[idx], y + dataRowH, linePaint)
+
+            if (i < ereignisse.size) {
+                val e = ereignisse[i]   // e ist List<String> mit 8 Einträgen
+                for (c in 0..7) {
+                    centeredText(e[c], colX[c], colX[c + 1], y + dataRowH / 2f + 4f, cellPaint)
+                }
+            }
+            y += dataRowH
         }
 
         document.finishPage(page)
