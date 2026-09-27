@@ -142,11 +142,25 @@
                 android:textColor="#64748B"
                 android:textSize="14sp"/>
 
-            <TextView
+            <LinearLayout
                 android:id="@+id/listEmail"
                 android:layout_width="match_parent"
-                android:layout_height="533dp"
-                android:text="@string/send_recipient_list_hint" />
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_add_recipient"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/recipient_add"
+                android:textAllCaps="false"
+                android:textColor="#334155"
+                app:backgroundTint="#EEF2F7"
+                app:cornerRadius="12dp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
