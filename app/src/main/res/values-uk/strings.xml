@@ -16,8 +16,25 @@
     <string name="send_subject_title">Тема</string>
     <string name="send_content_hint">Напишіть своє повідомлення...</string>
     <string name="send_email_recipient_title">Одержувач</string>
-    <string name="send_recipient_list_hint">Аліно, тут я маю мати можливість вибрати адреси електронної пошти.</string>
+
     <string name="send_button_return">Скасувати</string>
     <string name="send_button_send">Надіслати</string>
     <string name="send_email_recipient_subtitle">Виберіть, хто має отримати електронний лист.</string>
+
+    <string name="recipient_new">Новий отримувач</string>
+    <string name="recipient_edit">Редагувати отримувача</string>
+    <string name="recipient_cancel">Скасувати</string>
+    <string name="recipient_save">Зберегти</string>
+    <string name="recipient_delete">Видалити</string>
+    <string name="recipient_delete_title">Видалити отримувача?</string>
+    <string name="recipient_add">＋ Додати отримувача</string>
+
+    <string name="error_name_required">Будь ласка, введіть ім’я</string>
+    <string name="error_email_required">Будь ласка, введіть адресу електронної пошти</string>
+    <string name="error_invalid_email">Недійсна адреса електронної пошти</string>
+    <string name="error_no_recipient_selected">Будь ласка, виберіть хоча б одного отримувача</string>
+
+    <string name="email_sent_success">Електронний лист успішно надіслано</string>
+    <string name="email_send_error">Помилка: %1$s</string>
+
 </resources>

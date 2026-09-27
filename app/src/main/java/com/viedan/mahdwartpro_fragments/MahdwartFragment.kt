@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -22,14 +21,18 @@ import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.widget.TimePicker
-import android.widget.Toast.LENGTH_LONG
+import androidx.core.graphics.drawable.toDrawable
+
+import android.widget.Toast
 
 
+
+@Suppress("DEPRECATION")
 class MahdwartFragment : Fragment() {
-
 
     private lateinit var binding: FragmentMahdwartBinding
     private val selectedWtgs = mutableSetOf<String>()
+    private val selectedParsels = mutableListOf<String>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +82,8 @@ class MahdwartFragment : Fragment() {
                 continue
 
             val wtg = props?.optString("wtg") ?: "unknown"
+            val parcel = props?.optString("parcel") ?: "unknown"
+
             val multiPolygon = geometry.getJSONArray("coordinates")
 
             for (p in 0 until multiPolygon.length()) {
@@ -119,21 +124,27 @@ class MahdwartFragment : Fragment() {
 
                         polygon.strokeColor = 0xFF2A6274.toInt()
                         polygon.fillColor = 0x555993A7
+
                         wtg.split(",")
                             .map { it.trim() }
                             .forEach {
                                 selectedWtgs.remove(it)
                             }
 
+                        selectedParsels.remove(parcel)
+
                     } else {
 
                         polygon.strokeColor = selectedBorder
                         polygon.fillColor = selectedFill
+
                         wtg.split(",")
                             .map { it.trim() }
                             .forEach {
                                 selectedWtgs.add(it)
                             }
+
+                        selectedParsels.add(parcel)
                     }
 
                     map.invalidate()
@@ -189,30 +200,15 @@ class MahdwartFragment : Fragment() {
 
             val endTime = getTime(binding.timePickerEnd)
 
-
             fragment.arguments = Bundle().apply {
 
-                putStringArrayList(
-                    "wtgs",
-                    ArrayList(selectedWtgs)
-                )
+                putStringArrayList("wtgs", ArrayList(selectedWtgs))
+                putStringArrayList("parcel", ArrayList(selectedParsels))
+                putString("date", date)
+                putString("startTime", startTime)
+                putString("endTime", endTime)
 
-                putString(
-                    "date",
-                    date
-                )
-
-                putString(
-                    "startTime",
-                    startTime
-                )
-
-                putString(
-                    "endTime",
-                    endTime
-                )
             }
-
 
             parentFragmentManager
                 .beginTransaction()
@@ -264,7 +260,7 @@ class MahdwartFragment : Fragment() {
 
                         val scaledBitmap =
                             Bitmap.createScaledBitmap(bitmap, 40, 40, false)
-                            BitmapDrawable(resources, scaledBitmap)
+                            scaledBitmap.toDrawable(resources)
                     }
 
                 val marker =

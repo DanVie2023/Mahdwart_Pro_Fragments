@@ -16,8 +16,25 @@
     <string name="send_subject_title">Subject</string>
     <string name="send_content_hint">Write your message...</string>
     <string name="send_email_recipient_title">Recipient</string>
-    <string name="send_recipient_list_hint">Alina, I should be able to select email addresses here.</string>
+
     <string name="send_button_return">Cancel</string>
     <string name="send_button_send">Send</string>
     <string name="send_email_recipient_subtitle">Choose who should receive the email.</string>
+
+    <string name="recipient_new">New recipient</string>
+    <string name="recipient_edit">Edit recipient</string>
+    <string name="recipient_cancel">Cancel</string>
+    <string name="recipient_save">Save</string>
+    <string name="recipient_delete">Delete</string>
+    <string name="recipient_delete_title">Delete recipient?</string>
+    <string name="recipient_add">＋ Add recipient</string>
+
+    <string name="error_name_required">Please enter a name</string>
+    <string name="error_email_required">Please enter an email address</string>
+    <string name="error_invalid_email">Invalid email address</string>
+    <string name="error_no_recipient_selected">Please select at least one recipient</string>
+
+    <string name="email_sent_success">Email sent successfully</string>
+    <string name="email_send_error">Error: %1$s</string>
+
 </resources>

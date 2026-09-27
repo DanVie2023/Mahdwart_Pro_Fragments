@@ -1,35 +1,56 @@
 package com.viedan.mahdwartpro_fragments
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import android.widget.Toast.makeText
+
 import androidx.fragment.app.Fragment
+
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
 import com.viedan.mahdwartpro_fragments.databinding.FragmentSendDialogBinding
+
+import org.json.JSONArray
+import org.json.JSONObject
+
+import java.io.File
+import java.io.FileOutputStream
 import java.util.Properties
+
+import javax.activation.DataHandler
+import javax.activation.FileDataSource
+
 import javax.mail.Authenticator
 import javax.mail.Message
 import javax.mail.PasswordAuthentication
 import javax.mail.Session
 import javax.mail.Transport
+
 import javax.mail.internet.InternetAddress
-import javax.mail.internet.MimeMessage
-import android.widget.Toast
-import android.content.Context
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.pdf.PdfDocument
-import java.io.File
-import java.io.FileOutputStream
-import javax.activation.DataHandler
-import javax.activation.FileDataSource
 import javax.mail.internet.MimeBodyPart
+import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
+import androidx.core.content.edit
+
 
 class SendDialogFragment : Fragment() {
 
     private lateinit var binding: FragmentSendDialogBinding
     private var wtgs: List<String> = emptyList()
+    private var parcels: List<String> = emptyList()
     private var date: String = ""
     private var datetoday: String = ""
     private var startDate: String = ""
@@ -42,30 +63,33 @@ class SendDialogFragment : Fragment() {
     private var bewirtschaftungsform: String = ""
     private val testEreignisse: MutableList<List<String>> = mutableListOf()
 
+    data class Recipient(
+        var name: String,
+        var email: String,
+        var selected: Boolean = false
+    )
+
+    private val recipients = mutableListOf<Recipient>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         wtgs = arguments?.getStringArrayList("wtgs") ?: emptyList()
-
+        parcels = arguments?.getStringArrayList("parcel") ?: emptyList()
         date = arguments?.getString("date") ?: ""
-
         datetoday = java.time.LocalDate.now().toString()
 
         startDate = "DateUnkown"
-
         startTime = arguments?.getString("startTime") ?: ""
 
         endDate = "DateUnkown"
-
         endTime = arguments?.getString("endTime") ?: ""
 
+
         flurstueck = "1"
-
         flur = "1"
-
         gemarkung = "1"
-
         bewirtschaftungsform = "1"
 
         testEreignisse.add(listOf(flurstueck, flur, gemarkung, bewirtschaftungsform, startDate, startTime, endDate, endTime))
@@ -119,21 +143,385 @@ class SendDialogFragment : Fragment() {
             }
         )
 
-        binding.buttonSend.setOnClickListener {
-            sendTestEmail()
-        }
 
-        binding.buttonClose.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
+        loadRecipients()
+        displayRecipients()
+
+        binding.buttonAddRecipient.setOnClickListener {showRecipientDialog()}
+        binding.buttonSend.setOnClickListener {sendTestEmail()}
+        binding.buttonClose.setOnClickListener {parentFragmentManager.popBackStack() }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
     }
 
+    private fun loadRecipients() {
+
+        val prefs =
+            requireContext().getSharedPreferences(
+                "recipients",
+                Context.MODE_PRIVATE)
+
+        val json =
+            prefs.getString(/* key = */ "list", /* defValue = */ "[]")
+                ?: "[]"
+
+        recipients.clear()
+
+        try {
+            val array = JSONArray(json)
+            for (i in 0 until array.length()) {
+
+                val obj =
+                    array.getJSONObject(i)
+
+                recipients.add(
+                    Recipient(
+                        name = obj.getString("name"),
+
+                        email = obj.getString("email"),
+
+                        selected = obj.optBoolean(
+                                "selected",
+                                false)
+                    )
+                )
+            }
+
+        } catch (e: Exception) {e.printStackTrace()
+            recipients.clear() }
+    }
+
+    private fun saveRecipients() {
+
+        val array = JSONArray()
+
+        recipients.forEach {
+
+            val obj = JSONObject()
+
+            obj.put("name",it.name)
+            obj.put("email",it.email)
+            obj.put("selected", it.selected)
+
+            array.put(obj)
+        }
+
+        requireContext()
+            .getSharedPreferences(
+                "recipients",
+                Context.MODE_PRIVATE
+            )
+            .edit {
+                putString(
+                    "list",
+                    array.toString()
+                )
+            }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun displayRecipients() {
+
+        binding.listEmail.removeAllViews()
+
+
+        recipients.forEachIndexed { index, recipient ->
+            val row =
+                LinearLayout(requireContext()).apply {
+
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+
+                    setPadding(0, 8, 0, 8)
+
+                    layoutParams =
+                        LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                        )
+                }
+
+            val checkBox =
+                CheckBox(requireContext()).apply {
+
+                    isChecked = recipient.selected
+
+                    setOnCheckedChangeListener {
+                            _,
+                            checked ->
+
+                        recipient.selected =
+                            checked
+
+                        saveRecipients()
+                        updateSelectedCount()
+                    }
+                }
+
+            val text =
+                TextView(requireContext()).apply {
+
+                    text = "${recipient.name}\n${recipient.email}"
+                    textSize = 15f
+
+                    setTextColor(
+                        Color.rgb(
+                            30,
+                            41,
+                            59
+                        )
+                    )
+
+                    layoutParams =
+                        LinearLayout.LayoutParams(
+                            0,
+                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                            1f
+                        )
+                }
+
+            val gap = (5 * resources.displayMetrics.density).toInt()
+
+            val editButton = MaterialButton(requireContext()).apply {
+
+                layoutParams = LinearLayout.LayoutParams(
+                    (33 * resources.displayMetrics.density).toInt(),
+                    (40 * resources.displayMetrics.density).toInt()
+                )
+
+                minWidth = 0
+                minimumWidth = 0
+                minHeight = 0
+                minimumHeight = 0
+
+                setPadding(13, 0, 0, 0)
+
+                cornerRadius = (10 * resources.displayMetrics.density).toInt()
+
+                setIconResource(R.drawable.pencil)
+                iconSize = (20 * resources.displayMetrics.density).toInt()
+
+                iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+
+                setOnClickListener {
+                    showRecipientDialog(index)
+                }
+            }
+
+            val deleteButton = MaterialButton(requireContext()).apply {
+
+                layoutParams = LinearLayout.LayoutParams(
+                    (33 * resources.displayMetrics.density).toInt(),
+                    (40 * resources.displayMetrics.density).toInt()
+                ).apply {
+                    marginStart = gap
+                }
+
+                minWidth = 0
+                minimumWidth = 0
+                minHeight = 0
+                minimumHeight = 0
+
+                setPadding(13, 0, 0, 0)
+
+                cornerRadius = (10 * resources.displayMetrics.density).toInt()
+
+                setIconResource(R.drawable.delete)
+                iconSize = (20 * resources.displayMetrics.density).toInt()
+
+                iconGravity = MaterialButton.ICON_GRAVITY_TEXT_START
+
+                setOnClickListener {
+                    showDeleteConfirmation(index)
+                }
+            }
+
+            row.addView(checkBox)
+            row.addView(text)
+            row.addView(editButton)
+            row.addView(deleteButton)
+
+            binding.listEmail.addView(row)
+        }
+
+        updateSelectedCount()
+    }
+
+    private fun updateSelectedCount() {
+
+        val count =
+            recipients.count {
+                it.selected
+            }
+    }
+
+    private fun showRecipientDialog(
+        editIndex: Int? = null
+    ) {
+
+        val dialogView =
+            layoutInflater.inflate(
+                R.layout.dialog_recipient,
+                null
+            )
+
+        val nameInput =
+            dialogView.findViewById<TextInputEditText>(
+                R.id.inputRecipientName
+            )
+
+        val emailInput =
+            dialogView.findViewById<TextInputEditText>(
+                R.id.inputRecipientEmail
+            )
+
+        if (editIndex != null) {
+
+            val recipient = recipients[editIndex]
+
+            nameInput.setText(recipient.name)
+            emailInput.setText(recipient.email)
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(
+                if (editIndex == null)
+                    getString(R.string.recipient_new)
+                else
+                    getString(R.string.recipient_edit)
+            )
+
+            .setView(dialogView)
+
+            .setNegativeButton(
+                getString(R.string.recipient_cancel),
+                null
+            )
+
+            .setPositiveButton(
+                getString(R.string.recipient_save)
+            ) { _, _ ->
+
+                val name =
+                    nameInput.text
+                        ?.toString()
+                        ?.trim()
+                        ?: ""
+
+                val email =
+                    emailInput.text
+                        ?.toString()
+                        ?.trim()
+                        ?: ""
+
+                if (name.isEmpty()) {
+
+                    makeText(
+                        requireContext(),
+                        getString(R.string.error_name_required),
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                if (email.isEmpty()) {
+
+                    makeText(
+                        requireContext(),
+                        getString(R.string.error_email_required),
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                if (!android.util.Patterns.EMAIL_ADDRESS
+                        .matcher(email)
+                        .matches()
+                ) {
+
+                    makeText(
+                        requireContext(),
+                        getString(R.string.error_invalid_email),
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
+                if (editIndex == null) {
+
+                    recipients.add(
+                        Recipient(
+                            name = name,
+                            email = email,
+                            selected = false
+                        )
+                    )
+
+                }
+
+                else {
+
+                    recipients[editIndex].name = name
+                    recipients[editIndex].email = email
+                }
+
+
+                saveRecipients()
+                displayRecipients()
+            }
+            .show()
+    }
+
+
+    private fun showDeleteConfirmation(
+        index: Int
+    ) {
+
+        val recipient =
+            recipients[index]
+
+        MaterialAlertDialogBuilder(
+            requireContext()
+        )
+
+            .setTitle(R.string.recipient_delete)
+            .setMessage("${recipient.name}\n${recipient.email}")
+            .setNegativeButton(R.string.recipient_cancel, null)
+            .setPositiveButton(R.string.recipient_delete) { _, _ ->
+
+                recipients.removeAt(index)
+                saveRecipients()
+                displayRecipients()
+            }
+            .show()
+    }
 
     private fun sendTestEmail() {
+
+        val selectedRecipients =
+            recipients
+                .filter {
+                    it.selected
+                }
+                .map {
+                    it.email
+                }
+
+        if (selectedRecipients.isEmpty()) {
+
+            makeText(
+                requireContext(),
+                R.string.error_no_recipient_selected,
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
 
         Thread {
             try {
@@ -170,11 +558,11 @@ class SendDialogFragment : Fragment() {
                 message.setFrom(InternetAddress("Mahdwart@gmail.com"))
                 message.setRecipients(
                     Message.RecipientType.TO,
-                    "d.vieler@e3-gmbh.de"
+                    selectedRecipients.joinToString(",")
                 )
+
                 message.subject = emailSubject
 
-                // Textpart
                 val textPart = MimeBodyPart()
                 textPart.setText(emailBody, "UTF-8")
 
@@ -193,7 +581,7 @@ class SendDialogFragment : Fragment() {
                 Transport.send(message)
                 requireActivity()
                     .runOnUiThread {
-                        Toast.makeText(
+                        makeText(
                             requireContext(),
                             "E-Mail erfolgreich gesendet",
                             Toast.LENGTH_LONG
@@ -202,9 +590,9 @@ class SendDialogFragment : Fragment() {
             } catch (e: Exception) {
                 requireActivity()
                     .runOnUiThread {
-                        Toast.makeText(
+                        makeText(
                             requireContext(),
-                            "Fehler: ${e.message}",
+                            getString(R.string.email_send_error, e.message),
                             Toast.LENGTH_LONG
                         ).show()
                     }
