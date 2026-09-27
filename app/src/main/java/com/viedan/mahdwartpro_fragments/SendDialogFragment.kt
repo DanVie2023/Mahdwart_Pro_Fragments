@@ -25,6 +25,8 @@ import javax.activation.DataHandler
 import javax.activation.FileDataSource
 import javax.mail.internet.MimeBodyPart
 import javax.mail.internet.MimeMultipart
+//just for log function
+import android.util.Log
 
 class SendDialogFragment : Fragment() {
 
@@ -47,6 +49,7 @@ class SendDialogFragment : Fragment() {
         super.onCreate(savedInstanceState)
 
         wtgs = arguments?.getStringArrayList("wtgs") ?: emptyList()
+        debugWriteWtgsToFile(requireContext(), wtgs)
 
         date = arguments?.getString("date") ?: ""
 
@@ -112,7 +115,7 @@ class SendDialogFragment : Fragment() {
                 }
                 appendLine()
                 appendLine(
-                    "Bitte entnehmen Sie die relevanten Informationen aus dem beiliegnden PDF-Dokument."
+                    "Bitte entnehmen Sie die relevanten Informationen aus dem beiliegenden PDF-Dokument."
                 )
                 appendLine()
                 appendLine("Vielen Dank.")
@@ -313,8 +316,6 @@ class SendDialogFragment : Fragment() {
             canvas.drawText(text, (left + right) / 2f, baselineY, paint)
         }
 
-        /** Zeichnet den kompletten Formularkopf (Titel, Untertitel, Info-Zeile, Tabellenkopf) und
-         *  liefert die y-Position zurück, ab der die Datenzeilen beginnen. */
         fun drawHeader(): Float {
             var y = 40f
 
@@ -338,7 +339,8 @@ class SendDialogFragment : Fragment() {
             canvas.drawLine(colX[4], y, colX[4], y + infoRowH, linePaint)
             canvas.drawLine(colX[5], y, colX[5], y + infoRowH, linePaint)
 
-            canvas.drawText("Datum der Meldung:", colX[0] + 4f, y + 21f, labelPaint)
+            canvas.drawText("Datum der", colX[0] + 4f, y + 15f, labelPaint)
+            canvas.drawText("Meldung:", colX[0] + 4f, y + 29f, labelPaint)
             canvas.drawText(datetoday, colX[2] + 4f, y + 21f, valuePaint)
             canvas.drawText("Parkbetreuerin:", colX[4] + 4f, y + 15f, labelPaint)
             canvas.drawText("(Vertreterin)", colX[4] + 4f, y + 29f, labelPaint)
@@ -377,8 +379,9 @@ class SendDialogFragment : Fragment() {
         var y = drawHeader()
 
         // 25 rows, for more is an extra page added
-        val minRows = 25
-        val rowCount = maxOf(ereignisse.size, minRows)
+        //val minRows = 25
+        //val rowCount = maxOf(ereignisse.size, minRows)
+        val rowCount = ereignisse.size
 
         for (i in 0 until rowCount) {
             if (y + dataRowH > pageBottomLimit) {
@@ -391,11 +394,9 @@ class SendDialogFragment : Fragment() {
             canvas.drawRect(marginLeft, y, tableRight, y + dataRowH, linePaint)
             for (idx in 1..7) canvas.drawLine(colX[idx], y, colX[idx], y + dataRowH, linePaint)
 
-            if (i < ereignisse.size) {
-                val e = ereignisse[i]   // e ist List<String> mit 8 Einträgen
-                for (c in 0..7) {
-                    centeredText(e[c], colX[c], colX[c + 1], y + dataRowH / 2f + 4f, cellPaint)
-                }
+            val e = ereignisse[i]   // e ist List<String> mit 8 Einträgen
+            for (c in 0..7) {
+                centeredText(e[c], colX[c], colX[c + 1], y + dataRowH / 2f + 4f, cellPaint)
             }
             y += dataRowH
         }
@@ -410,6 +411,17 @@ class SendDialogFragment : Fragment() {
         document.close()
 
         return file
+    }
+
+    private fun debugWriteWtgsToFile(context: Context, wtgs: List<String>) {
+        val file = File(context.cacheDir, "debug_wtgs.txt")
+        file.printWriter().use { out ->
+            out.println("Anzahl Einträge: ${wtgs.size}")
+            wtgs.forEachIndexed { index, value ->
+                out.println("[$index] = \"$value\"")
+            }
+        }
+        Log.d("WTGS_DEBUG", "wtgs-Inhalt geschrieben nach: ${file.absolutePath}")
     }
 
 
