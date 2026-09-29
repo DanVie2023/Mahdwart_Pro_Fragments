@@ -198,7 +198,13 @@ class MahdwartFragment : Fragment() {
 
             val startTime = getTime(binding.timePickerStart)
 
-            val endTime = getTime(binding.timePickerEnd)
+            val type = when (binding.radioGroupType.checkedRadioButtonId){
+                R.id.radioGrass -> "grass"
+                R.id.radioFarming -> "farming"
+                else -> ""
+            }
+            //deprecated information
+            //val endTime = getTime(binding.timePickerEnd)
 
             fragment.arguments = Bundle().apply {
 
@@ -206,7 +212,9 @@ class MahdwartFragment : Fragment() {
                 putStringArrayList("parcel", ArrayList(selectedParsels))
                 putString("date", date)
                 putString("startTime", startTime)
-                putString("endTime", endTime)
+                putString("type", type)
+                //deprecated information
+                //putString("endTime", endTime)
 
             }
 
@@ -308,4 +316,6 @@ class MahdwartFragment : Fragment() {
         super.onPause()
         binding.map.onPause()
     }
+
+
 }

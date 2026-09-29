@@ -35,11 +35,11 @@ class SendDialogFragment : Fragment() {
     private var startDate: String = ""
     private var startTime: String = ""
     private var endDate: String = ""
-    private var endTime: String = ""
     private var flurstueck: String = ""
     private var flur: String = ""
     private var gemarkung: String = ""
-    private var bewirtschaftungsform: String = ""
+
+    private var type: String = ""
     private val testEreignisse: MutableList<List<String>> = mutableListOf()
 
 
@@ -58,17 +58,15 @@ class SendDialogFragment : Fragment() {
 
         endDate = "DateUnkown"
 
-        endTime = arguments?.getString("endTime") ?: ""
-
         flurstueck = "1"
 
         flur = "1"
 
         gemarkung = "1"
 
-        bewirtschaftungsform = "1"
+        type = "1"
 
-        testEreignisse.add(listOf(flurstueck, flur, gemarkung, bewirtschaftungsform, startDate, startTime, endDate, endTime))
+        testEreignisse.add(listOf(flurstueck, flur, gemarkung, type, startDate, startTime, endDate))
     }
 
     override fun onCreateView(
@@ -93,17 +91,18 @@ class SendDialogFragment : Fragment() {
             "Windpark Wasbek-Ehndorf - Mahd-/Ernteereignis"
         )
 
+
         binding.InputTextEmailBody.setText(
             buildString {
                 appendLine("Sehr geehrte Damen und Herren,")
                 appendLine()
-                appendLine("im Windpark Wasbek-Ehndorf ist ein Mahd- oder Ernteereignis geplant.")
+                appendLine("im Windpark Wasbek-Ehndorf ist ein $type geplant.")
                 appendLine()
                 appendLine("Geplantes Datum:")
                 appendLine(date)
                 appendLine()
                 appendLine("Geplante Uhrzeit:")
-                appendLine("$startTime - $endTime")
+                appendLine("$startTime")
                 appendLine()
                 appendLine("Folgende Windenergieanlagen sind davon betroffen:")
                 appendLine()
