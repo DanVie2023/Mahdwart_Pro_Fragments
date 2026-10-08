@@ -23,8 +23,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import android.widget.TimePicker
 import androidx.core.graphics.drawable.toDrawable
 
-import android.widget.Toast
-
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 
 @Suppress("DEPRECATION")
@@ -33,6 +33,12 @@ class MahdwartFragment : Fragment() {
     private lateinit var binding: FragmentMahdwartBinding
     private val selectedWtgs = mutableSetOf<String>()
     private val selectedParsels = mutableListOf<String>()
+    private var selectedDate: LocalDate = LocalDate.now()
+    private var siteattentand: String = ""
+    private var email: String = ""
+
+
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,15 +46,20 @@ class MahdwartFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentMahdwartBinding.inflate(inflater, container, false)
-        """binding.materialTimepickerView.setIs24HourView(true) """
+        //binding.materialTimepickerView.setIs24HourView(true)
         return binding.root
     }
-
 
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.calendarView3.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            // month ist hier 0-basiert (Januar = 0)
+            selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
+        }
+
         setupClickListeners()
 
         Configuration.getInstance().load(
@@ -62,10 +73,9 @@ class MahdwartFragment : Fragment() {
         map.setMultiTouchControls(true)
 
 
-
         val geoJsonString = requireContext()
             .assets
-            .open("edited_fields.geojson")
+            .open("WasbekEhndorfProjectfile.geojson")
             .bufferedReader()
             .use { it.readText() }
 
@@ -80,9 +90,11 @@ class MahdwartFragment : Fragment() {
 
             if (geometry.getString("type") != "MultiPolygon")
                 continue
-
+            //extract information from json
             val wtg = props?.optString("wtg") ?: "unknown"
             val parcel = props?.optString("parcel") ?: "unknown"
+            siteattentand = props?.optString("siteattentand") ?: "unknown"
+            email = props?.optString("email") ?: "unkown"
 
             val multiPolygon = geometry.getJSONArray("coordinates")
 
@@ -170,16 +182,9 @@ class MahdwartFragment : Fragment() {
 
     }
 
-    private fun getSelectedDate(): String {
-        val calendar = java.util.Calendar.getInstance()
-        calendar.timeInMillis = binding.calendarView3.date
+    private fun getSelectedDate(): String =
+        selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
-        val day = calendar.get(java.util.Calendar.DAY_OF_MONTH)
-        val month = calendar.get(java.util.Calendar.MONTH) + 1
-        val year = calendar.get(java.util.Calendar.YEAR)
-
-        return "%02d.%02d.%d".format(day, month, year)
-    }
 
     private fun getTime(timePicker: TimePicker): String {
         return "%02d:%02d".format(
@@ -194,13 +199,13 @@ class MahdwartFragment : Fragment() {
 
             val fragment = SendDialogFragment()
 
-            val date = getSelectedDate()
+            val startDate = getSelectedDate()
 
             val startTime = getTime(binding.timePickerStart)
 
-            val type = when (binding.radioGroupType.checkedRadioButtonId){
-                R.id.radioGrass -> "grass"
-                R.id.radioFarming -> "farming"
+            val agriculturalType = when (binding.toggleType.checkedButtonId) {
+                R.id.radioGrass -> "Mahd"
+                R.id.radioFarming -> "Ernte"
                 else -> ""
             }
             //deprecated information
@@ -210,9 +215,11 @@ class MahdwartFragment : Fragment() {
 
                 putStringArrayList("wtgs", ArrayList(selectedWtgs))
                 putStringArrayList("parcel", ArrayList(selectedParsels))
-                putString("date", date)
+                putString("startDate", startDate)
                 putString("startTime", startTime)
-                putString("type", type)
+                putString("agriculturalType", agriculturalType)
+                putString("siteattentand", siteattentand)
+                putString("email", email)
                 //deprecated information
                 //putString("endTime", endTime)
 
@@ -259,7 +266,8 @@ class MahdwartFragment : Fragment() {
                 val flur = properties.optInt("Flur")
                 val flurstueck = properties.optString("Flurstueck")
 
-                val drawable = ContextCompat.getDrawable(requireContext(),R.drawable.windkraftanlage)
+                val drawable =
+                    ContextCompat.getDrawable(requireContext(), R.drawable.windkraftanlage)
 
                 val scaled =
                     drawable?.let {
@@ -268,7 +276,7 @@ class MahdwartFragment : Fragment() {
 
                         val scaledBitmap =
                             Bitmap.createScaledBitmap(bitmap, 40, 40, false)
-                            scaledBitmap.toDrawable(resources)
+                        scaledBitmap.toDrawable(resources)
                     }
 
                 val marker =
@@ -316,6 +324,8 @@ class MahdwartFragment : Fragment() {
         super.onPause()
         binding.map.onPause()
     }
+
+
 
 
 }
