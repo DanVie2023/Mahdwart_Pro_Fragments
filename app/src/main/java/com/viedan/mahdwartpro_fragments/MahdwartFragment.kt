@@ -26,16 +26,25 @@ import androidx.core.graphics.drawable.toDrawable
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import android.util.Log
 
 @Suppress("DEPRECATION")
+
+
 class MahdwartFragment : Fragment() {
 
     private lateinit var binding: FragmentMahdwartBinding
+
     private val selectedWtgs = mutableSetOf<String>()
     private val selectedParsels = mutableListOf<String>()
+
+    private val parcelToWtgs = mutableMapOf<String, Set<String>>()
+
+    // Загальні контакти проєкту
+    private var projectContacts = org.json.JSONArray()
+
     private var selectedDate: LocalDate = LocalDate.now()
     private var siteattentand: String = ""
-    private var email: String = ""
 
 
 
@@ -54,6 +63,15 @@ class MahdwartFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        parentFragmentManager.setFragmentResultListener(
+            "reset_selection",
+            viewLifecycleOwner
+        ) { _, _ ->
+            resetSelection()
+        }
+
+        setupClickListeners()
 
         binding.calendarView3.setOnDateChangeListener { _, year, month, dayOfMonth ->
             // month ist hier 0-basiert (Januar = 0)
@@ -80,21 +98,40 @@ class MahdwartFragment : Fragment() {
             .use { it.readText() }
 
         val geoJson = JSONObject(geoJsonString)
+
+        val metadata = geoJson.getJSONObject("metadata")
+
+        siteattentand = metadata.optString("siteattendand", "")
+        projectContacts = metadata.optJSONArray("email")
+            ?: org.json.JSONArray()
+
         val features = geoJson.getJSONArray("features")
 
         for (i in 0 until features.length()) {
-
             val feature = features.getJSONObject(i)
             val geometry = feature.getJSONObject("geometry")
-            val props = feature.optJSONObject("properties")
+            val props = feature.getJSONObject("properties")
 
-            if (geometry.getString("type") != "MultiPolygon")
+            if (geometry.getString("type") != "MultiPolygon") {
                 continue
-            //extract information from json
-            val wtg = props?.optString("wtg") ?: "unknown"
-            val parcel = props?.optString("parcel") ?: "unknown"
-            siteattentand = props?.optString("siteattentand") ?: "unknown"
-            email = props?.optString("email") ?: "unkown"
+            }
+
+            val wtg = props.optString("wtg") ?: ""
+            val parcel = props.optString("parcel") ?: ""
+
+            val parcels = parcel.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+
+            val wtgs = wtg.split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .toSet()
+
+            parcels.forEach { parcelName ->
+                parcelToWtgs[parcelName] =
+                    parcelToWtgs[parcelName].orEmpty() + wtgs
+            }
 
             val multiPolygon = geometry.getJSONArray("coordinates")
 
@@ -127,8 +164,8 @@ class MahdwartFragment : Fragment() {
                 polygon.strokeColor = 0xFF2A6274.toInt()
                 polygon.strokeWidth = 4f
 
-                polygon.setOnClickListener { _, _, _ ->
 
+                polygon.setOnClickListener { _, _, _ ->
                     val selectedBorder = 0xFFFFC107.toInt()
                     val selectedFill = 0x55FFC107
 
@@ -137,12 +174,6 @@ class MahdwartFragment : Fragment() {
                         polygon.strokeColor = 0xFF2A6274.toInt()
                         polygon.fillColor = 0x555993A7
 
-                        wtg.split(",")
-                            .map { it.trim() }
-                            .forEach {
-                                selectedWtgs.remove(it)
-                            }
-
                         selectedParsels.remove(parcel)
 
                     } else {
@@ -150,18 +181,23 @@ class MahdwartFragment : Fragment() {
                         polygon.strokeColor = selectedBorder
                         polygon.fillColor = selectedFill
 
-                        wtg.split(",")
-                            .map { it.trim() }
-                            .forEach {
-                                selectedWtgs.add(it)
-                            }
+                        if (parcel !in selectedParsels) {
+                            selectedParsels.add(parcel)
+                        }
+                    }
 
-                        selectedParsels.add(parcel)
+                    selectedWtgs.clear()
+
+                    selectedParsels.forEach { selectedParcel ->
+                        selectedWtgs.addAll(
+                            parcelToWtgs[selectedParcel].orEmpty()
+                        )
                     }
 
                     map.invalidate()
                     true
                 }
+
 
                 map.overlays.add(polygon)
             }
@@ -193,14 +229,25 @@ class MahdwartFragment : Fragment() {
         )
     }
 
+
     private fun setupClickListeners() {
 
         binding.buttonSelected.setOnClickListener {
 
+            if (selectedParsels.isEmpty()) {
+
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.select_parcel_title)
+                    .setMessage(R.string.select_parcel_message)
+                    .setPositiveButton(R.string.understood, null)
+                    .show()
+
+                return@setOnClickListener
+            }
+
             val fragment = SendDialogFragment()
 
             val startDate = getSelectedDate()
-
             val startTime = getTime(binding.timePickerStart)
 
             val agriculturalType = when (binding.toggleType.checkedButtonId) {
@@ -208,33 +255,33 @@ class MahdwartFragment : Fragment() {
                 R.id.radioFarming -> "Ernte"
                 else -> ""
             }
-            //deprecated information
-            //val endTime = getTime(binding.timePickerEnd)
 
             fragment.arguments = Bundle().apply {
-
                 putStringArrayList("wtgs", ArrayList(selectedWtgs))
                 putStringArrayList("parcel", ArrayList(selectedParsels))
+                putString("contacts", projectContacts.toString())
                 putString("startDate", startDate)
                 putString("startTime", startTime)
                 putString("agriculturalType", agriculturalType)
                 putString("siteattentand", siteattentand)
-                putString("email", email)
-                //deprecated information
-                //putString("endTime", endTime)
-
             }
+
+            Log.d("MahdwartDebug", "WTGs: $selectedWtgs")
+            Log.d("MahdwartDebug", "Parcels: $selectedParsels")
+            Log.d("MahdwartDebug", "Start date: $startDate")
+            Log.d("MahdwartDebug", "Start time: $startTime")
+            Log.d("MahdwartDebug", "Agricultural type: $agriculturalType")
+            Log.d("MahdwartDebug", "Site attendant: $siteattentand")
+            Log.d("MahdwartDebug", "Email: $projectContacts")
 
             parentFragmentManager
                 .beginTransaction()
-                .replace(
-                    R.id.frame_content,
-                    fragment
-                )
+                .replace(R.id.frame_content, fragment)
                 .addToBackStack(null)
                 .commit()
         }
     }
+
 
     private fun loadWindmills(map: MapView) {
 
@@ -313,6 +360,16 @@ class MahdwartFragment : Fragment() {
                 map.overlays.add(marker)
             }
         }
+    }
+
+    private fun resetSelection() {
+        selectedWtgs.clear()
+        selectedParsels.clear()
+
+        selectedDate = LocalDate.now()
+        binding.calendarView3.date = System.currentTimeMillis()
+
+        binding.map.invalidate()
     }
 
     override fun onResume() {
