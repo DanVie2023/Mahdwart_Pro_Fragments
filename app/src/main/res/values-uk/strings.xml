@@ -37,4 +37,8 @@
     <string name="email_sent_success">Електронний лист успішно надіслано</string>
     <string name="email_send_error">Помилка: %1$s</string>
 
+    <string name="select_parcel_title">Оберіть ділянку</string>
+    <string name="select_parcel_message">Щоб продовжити, оберіть щонайменше одну ділянку на карті.</string>
+    <string name="understood">Зрозуміло</string>
+
 </resources>

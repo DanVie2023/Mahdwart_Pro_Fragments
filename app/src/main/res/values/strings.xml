@@ -39,6 +39,10 @@
     <string name="email_sent_success">E-Mail erfolgreich gesendet</string>
     <string name="email_send_error">Fehler: %1$s</string>
 
+    <string name="select_parcel_title">Flurstück auswählen</string>
+    <string name="select_parcel_message">Bitte wählen Sie mindestens ein Flurstück auf der Karte aus, um fortzufahren.</string>
+    <string name="understood">Alles klar</string>
+
 
 
 </resources>

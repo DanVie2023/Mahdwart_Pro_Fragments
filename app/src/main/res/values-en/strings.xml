@@ -37,4 +37,8 @@
     <string name="email_sent_success">Email sent successfully</string>
     <string name="email_send_error">Error: %1$s</string>
 
+    <string name="select_parcel_title">Select a parcel</string>
+    <string name="select_parcel_message">Please select at least one parcel on the map to continue.</string>
+    <string name="understood">Got it</string>
+
 </resources>
