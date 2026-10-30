@@ -64,7 +64,9 @@ class SendDialogFragment : Fragment() {
     private var endDate: String = "DateUnknown"
     private var siteattentand: String = ""
     private var agriculturalType: String = ""
-    private var emailadd: String = ""
+    private val recipients = mutableListOf<Recipient>()
+    private var projectContactsJson: String = "[]"
+
     private val testEreignisse: MutableList<List<String>> = mutableListOf()
     private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     private val parcelRegex = Regex("""^G([^-]+)-F([^-]+)-FS([^-]+)$""")
@@ -81,9 +83,6 @@ class SendDialogFragment : Fragment() {
         val flurstueck: String
     )
 
-    private val recipients = mutableListOf<Recipient>()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -95,6 +94,7 @@ class SendDialogFragment : Fragment() {
         //agriculturalType has to be placed BEFORE endDate!
         agriculturalType = arguments?.getString("agriculturalType") ?: ""
         siteattentand = arguments?.getString("siteattentand") ?: ""
+        projectContactsJson = arguments?.getString("contacts") ?: "[]"
 
         val daysToAdd = when (agriculturalType) {
             "Mahd" -> 3L
@@ -173,8 +173,16 @@ class SendDialogFragment : Fragment() {
         displayRecipients()
 
         binding.buttonAddRecipient.setOnClickListener { showRecipientDialog() }
-        binding.buttonSend.setOnClickListener { sendEmail() }
-        binding.buttonClose.setOnClickListener { parentFragmentManager.popBackStack() }
+        binding.buttonSend.setOnClickListener {
+            sendEmail()
+        }
+        binding.buttonClose.setOnClickListener {
+            parentFragmentManager.setFragmentResult(
+                "reset_selection",
+                Bundle.EMPTY
+            )
+            parentFragmentManager.popBackStack()
+        }
     }
 
     override fun onDestroyView() {
@@ -184,43 +192,100 @@ class SendDialogFragment : Fragment() {
 
     private fun loadRecipients() {
 
-        val prefs =
-            requireContext().getSharedPreferences(
-                "recipients",
-                Context.MODE_PRIVATE
-            )
+        val prefs = requireContext().getSharedPreferences(
+            "recipients",
+            Context.MODE_PRIVATE
+        )
 
-        val json =
-            prefs.getString(/* key = */ "list", /* defValue = */ "[]")
-                ?: "[]"
+        val savedJson = prefs.getString("list", "[]") ?: "[]"
 
         recipients.clear()
 
-        try {
-            val array = JSONArray(json)
-            for (i in 0 until array.length()) {
+        fun addRecipientIfMissing(
+            name: String,
+            email: String,
+            selected: Boolean
+        ) {
+            val cleanName = name.trim()
+            val cleanEmail = email.trim()
 
-                val obj =
-                    array.getJSONObject(i)
+            if (cleanEmail.isEmpty()) return
+
+            val existingIndex = recipients.indexOfFirst {
+                it.email.trim().equals(cleanEmail, ignoreCase = true)
+            }
+
+            if (existingIndex == -1) {
 
                 recipients.add(
                     Recipient(
-                        name = obj.getString("name"),
-
-                        email = obj.getString("email"),
-
-                        selected = obj.optBoolean(
-                            "selected",
-                            false
-                        )
+                        name = cleanName,
+                        email = cleanEmail,
+                        selected = selected
                     )
+                )
+
+            } else {
+
+                if (recipients[existingIndex].name.isBlank() && cleanName.isNotBlank()) {
+                    recipients[existingIndex].name = cleanName
+                }
+
+                recipients[existingIndex].selected =
+                    recipients[existingIndex].selected || selected
+            }
+        }
+
+        try {
+            val savedArray = JSONArray(savedJson)
+
+            for (i in 0 until savedArray.length()) {
+
+                val obj = savedArray.getJSONObject(i)
+
+                addRecipientIfMissing(
+                    name = obj.optString("name"),
+                    email = obj.optString("email"),
+                    selected = obj.optBoolean("selected", false)
                 )
             }
 
         } catch (e: Exception) {
-            e.printStackTrace()
-            recipients.clear()
+            android.util.Log.e("Recipients", "Error loading saved recipients", e)
         }
+
+        val excludedProjectEmails = prefs
+            .getStringSet("excluded_project_emails", emptySet())
+            ?.map { it.trim().lowercase() }
+            ?.toSet()
+            ?: emptySet()
+
+        try {
+            val projectArray = JSONArray(projectContactsJson)
+
+            for (i in 0 until projectArray.length()) {
+
+                val obj = projectArray.getJSONObject(i)
+
+                val name = obj.optString("name", "").trim()
+                val address = obj.optString("address", "").trim()
+
+                if (address.lowercase() in excludedProjectEmails) {
+                    continue
+                }
+
+                addRecipientIfMissing(
+                    name = name,
+                    email = address,
+                    selected = false
+                )
+            }
+
+        } catch (e: Exception) {
+            android.util.Log.e("Recipients", "Error loading GeoJSON contacts", e)
+        }
+
+        saveRecipients()
     }
 
     private fun saveRecipients() {
@@ -378,6 +443,45 @@ class SendDialogFragment : Fragment() {
         updateSelectedCount()
     }
 
+    private fun isGeoJsonRecipient(email: String): Boolean {
+
+        return try {
+            val array = JSONArray(projectContactsJson)
+
+            (0 until array.length()).any { i ->
+                array.getJSONObject(i)
+                    .optString("address")
+                    .trim()
+                    .equals(email.trim(), ignoreCase = true)
+            }
+
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
+    private fun rememberDeletedProjectRecipient(email: String) {
+
+        if (!isGeoJsonRecipient(email)) return
+
+        val prefs = requireContext().getSharedPreferences(
+            "recipients",
+            Context.MODE_PRIVATE
+        )
+
+        val excluded = prefs
+            .getStringSet("excluded_project_emails", emptySet())
+            ?.toMutableSet()
+            ?: mutableSetOf()
+
+        excluded.add(email.trim().lowercase())
+
+        prefs.edit {
+            putStringSet("excluded_project_emails", excluded)
+        }
+    }
+
     private fun updateSelectedCount() {
 
         val count =
@@ -481,6 +585,21 @@ class SendDialogFragment : Fragment() {
                     return@setPositiveButton
                 }
 
+                val duplicateIndex = recipients.indexOfFirst {
+                    it.email.trim().equals(email, ignoreCase = true)
+                }
+
+                if (duplicateIndex != -1 && duplicateIndex != editIndex) {
+
+                    makeText(
+                        requireContext(),
+                        "Diese E-Mail-Adresse ist bereits in der Liste.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    return@setPositiveButton
+                }
+
                 if (editIndex == null) {
 
                     recipients.add(
@@ -492,6 +611,12 @@ class SendDialogFragment : Fragment() {
                     )
 
                 } else {
+
+                    val oldEmail = recipients[editIndex].email
+
+                    if (!oldEmail.equals(email, ignoreCase = true)) {
+                        rememberDeletedProjectRecipient(oldEmail)
+                    }
 
                     recipients[editIndex].name = name
                     recipients[editIndex].email = email
@@ -519,6 +644,8 @@ class SendDialogFragment : Fragment() {
             .setMessage("${recipient.name}\n${recipient.email}")
             .setNegativeButton(R.string.recipient_cancel, null)
             .setPositiveButton(R.string.recipient_delete) { _, _ ->
+
+                rememberDeletedProjectRecipient(recipient.email)
 
                 recipients.removeAt(index)
                 saveRecipients()
@@ -621,10 +748,25 @@ class SendDialogFragment : Fragment() {
             // Show the result to the user
             result
                 .onSuccess {
-                    makeText(requireContext(), "E-Mail erfolgreich gesendet", Toast.LENGTH_LONG).show()
+
+                    Toast.makeText(
+                        requireContext(),
+                        "E-Mail erfolgreich gesendet",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    // Reset selection in MahdwartFragment
+                    parentFragmentManager.setFragmentResult(
+                        "reset_selection",
+                        Bundle.EMPTY
+                    )
+
+                    // Close SendDialogFragment only after successful sending
+                    parentFragmentManager.popBackStack()
                 }
                 .onFailure { e ->
-                    makeText(
+
+                    Toast.makeText(
                         requireContext(),
                         getString(R.string.email_send_error, e.message),
                         Toast.LENGTH_LONG
@@ -867,6 +1009,7 @@ class SendDialogFragment : Fragment() {
 
     private fun parseParcels(entries: List<String>): List<ParcelInfo> {
         return entries
+            .asSequence()
             .flatMap { it.split(",") }   // "A,B,C" -> A, B, C
             .map { it.trim() }
             .filter { it.isNotEmpty() }
@@ -880,7 +1023,8 @@ class SendDialogFragment : Fragment() {
                     ParcelInfo(gemarkung = g, flur = f, flurstueck = fs)
                 }
             }
-            .distinct()                  // doppelte Einträge entfernen
+            .distinct()
+            .toList()                  // doppelte Einträge entfernen
     }
 
 
