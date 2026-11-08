@@ -43,6 +43,11 @@
     <string name="select_parcel_message">Bitte wählen Sie mindestens ein Flurstück auf der Karte aus, um fortzufahren.</string>
     <string name="understood">Alles klar</string>
 
+    <string name="error_no_internet">Keine Internetverbindung. Die E-Mail kann nicht gesendet werden.</string>
+    <string name="error_geojson_load">Kartendaten konnten nicht geladen werden.</string>
+    <string name="select_type_title">Bewirtschaftungsform fehlt</string>
+    <string name="select_type_message">Bitte wähle zuerst „Mahd“ oder „Ernte“ aus.</string>
+
 
 
 </resources>

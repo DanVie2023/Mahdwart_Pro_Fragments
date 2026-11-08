@@ -4,61 +4,55 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TimePicker
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.viedan.mahdwartpro_fragments.databinding.FragmentMahdwartBinding
+import org.json.JSONArray
 import org.json.JSONObject
 import org.osmdroid.config.Configuration
-import org.osmdroid.util.GeoPoint
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
+import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polygon
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import android.widget.TimePicker
-import androidx.core.graphics.drawable.toDrawable
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-import android.util.Log
-
 @Suppress("DEPRECATION")
-
-
 class MahdwartFragment : Fragment() {
 
-    private lateinit var binding: FragmentMahdwartBinding
+    private var _binding: FragmentMahdwartBinding? = null
+    private val binding get() = _binding!!
 
     private val selectedWtgs = mutableSetOf<String>()
     private val selectedParsels = mutableListOf<String>()
 
     private val parcelToWtgs = mutableMapOf<String, Set<String>>()
 
-    // Загальні контакти проєкту
-    private var projectContacts = org.json.JSONArray()
+    // Allgemeine Kontakte des Projekts
+    private var projectContacts = JSONArray()
 
     private var selectedDate: LocalDate = LocalDate.now()
-    private var siteattentand: String = ""
-
-
-
+    private var siteattendant: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = FragmentMahdwartBinding.inflate(inflater, container, false)
-        //binding.materialTimepickerView.setIs24HourView(true)
+        _binding = FragmentMahdwartBinding.inflate(inflater, container, false)
         return binding.root
     }
-
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -78,8 +72,6 @@ class MahdwartFragment : Fragment() {
             selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
         }
 
-        setupClickListeners()
-
         Configuration.getInstance().load(
             requireContext(),
             PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -90,137 +82,138 @@ class MahdwartFragment : Fragment() {
         map.setTileSource(TileSourceFactory.MAPNIK)
         map.setMultiTouchControls(true)
 
-
-        val geoJsonString = requireContext()
-            .assets
-            .open("WasbekEhndorfProjectfile.geojson")
-            .bufferedReader()
-            .use { it.readText() }
-
-        val geoJson = JSONObject(geoJsonString)
-
-        val metadata = geoJson.getJSONObject("metadata")
-
-        siteattentand = metadata.optString("siteattendand", "")
-        projectContacts = metadata.optJSONArray("email")
-            ?: org.json.JSONArray()
-
-        val features = geoJson.getJSONArray("features")
-
-        for (i in 0 until features.length()) {
-            val feature = features.getJSONObject(i)
-            val geometry = feature.getJSONObject("geometry")
-            val props = feature.getJSONObject("properties")
-
-            if (geometry.getString("type") != "MultiPolygon") {
-                continue
-            }
-
-            val wtg = props.optString("wtg") ?: ""
-            val parcel = props.optString("parcel") ?: ""
-
-            val parcels = parcel.split(",")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-
-            val wtgs = wtg.split(",")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .toSet()
-
-            parcels.forEach { parcelName ->
-                parcelToWtgs[parcelName] =
-                    parcelToWtgs[parcelName].orEmpty() + wtgs
-            }
-
-            val multiPolygon = geometry.getJSONArray("coordinates")
-
-            for (p in 0 until multiPolygon.length()) {
-
-                val polygonCoords = multiPolygon.getJSONArray(p)
-                val outerRing = polygonCoords.getJSONArray(0)
-                val points = mutableListOf<GeoPoint>()
-
-                for (j in 0 until outerRing.length()) {
-
-                    val coord = outerRing.getJSONArray(j)
-                    val lon = coord.getDouble(0)
-                    val lat = coord.getDouble(1)
-
-                    points.add(
-                        GeoPoint(lat, lon)
-                    )
-                }
-
-                if (points.first() != points.last()) {
-                    points.add(points.first())
-                }
-
-                val polygon = Polygon(map)
-
-                polygon.points = points
-
-                polygon.fillColor = 0x555993A7
-                polygon.strokeColor = 0xFF2A6274.toInt()
-                polygon.strokeWidth = 4f
-
-
-                polygon.setOnClickListener { _, _, _ ->
-                    val selectedBorder = 0xFFFFC107.toInt()
-                    val selectedFill = 0x55FFC107
-
-                    if (polygon.strokeColor == selectedBorder) {
-
-                        polygon.strokeColor = 0xFF2A6274.toInt()
-                        polygon.fillColor = 0x555993A7
-
-                        selectedParsels.remove(parcel)
-
-                    } else {
-
-                        polygon.strokeColor = selectedBorder
-                        polygon.fillColor = selectedFill
-
-                        if (parcel !in selectedParsels) {
-                            selectedParsels.add(parcel)
-                        }
-                    }
-
-                    selectedWtgs.clear()
-
-                    selectedParsels.forEach { selectedParcel ->
-                        selectedWtgs.addAll(
-                            parcelToWtgs[selectedParcel].orEmpty()
-                        )
-                    }
-
-                    map.invalidate()
-                    true
-                }
-
-
-                map.overlays.add(polygon)
-            }
-        }
+        loadProjectData(map)
 
         map.controller.apply {
             setZoom(16.0)
-            setCenter(
-                GeoPoint(
-                    54.063065,
-                    9.878683
-                )
-            )
+            setCenter(GeoPoint(54.063065, 9.878683))
         }
 
-        map.invalidate()
         loadWindmills(map)
-
+        map.invalidate()
     }
 
+    /** Lädt Flurstücke und Metadaten aus der GeoJSON-Datei. Fehler führen nicht zum Absturz. */
+    private fun loadProjectData(map: MapView) {
+        try {
+            val geoJsonString = requireContext()
+                .assets
+                .open("WasbekEhndorfProjectfile.geojson")
+                .bufferedReader()
+                .use { it.readText() }
+
+            val geoJson = JSONObject(geoJsonString)
+
+            val metadata = geoJson.getJSONObject("metadata")
+
+            // Der JSON-Schlüssel bleibt "siteattendand", so steht er in der GeoJSON-Datei
+            siteattendant = metadata.optString("siteattendand", "")
+            projectContacts = metadata.optJSONArray("email") ?: JSONArray()
+
+            val features = geoJson.getJSONArray("features")
+
+            for (i in 0 until features.length()) {
+                val feature = features.getJSONObject(i)
+                val geometry = feature.getJSONObject("geometry")
+                val props = feature.getJSONObject("properties")
+
+                if (geometry.getString("type") != "MultiPolygon") {
+                    continue
+                }
+
+                val wtg = props.optString("wtg")
+                val parcel = props.optString("parcel")
+
+                val parcels = parcel.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+
+                val wtgs = wtg.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .toSet()
+
+                parcels.forEach { parcelName ->
+                    parcelToWtgs[parcelName] =
+                        parcelToWtgs[parcelName].orEmpty() + wtgs
+                }
+
+                val multiPolygon = geometry.getJSONArray("coordinates")
+
+                for (p in 0 until multiPolygon.length()) {
+
+                    val polygonCoords = multiPolygon.getJSONArray(p)
+                    val outerRing = polygonCoords.getJSONArray(0)
+                    val points = mutableListOf<GeoPoint>()
+
+                    for (j in 0 until outerRing.length()) {
+                        val coord = outerRing.getJSONArray(j)
+                        points.add(GeoPoint(coord.getDouble(1), coord.getDouble(0)))
+                    }
+
+                    if (points.isEmpty()) continue
+
+                    if (points.first() != points.last()) {
+                        points.add(points.first())
+                    }
+
+                    val polygon = Polygon(map)
+                    polygon.points = points
+                    polygon.strokeWidth = 4f
+
+                    // Bereits gewählte Flurstücke beim Neuaufbau der View wieder markieren
+                    applyPolygonStyle(polygon, parcel in selectedParsels)
+
+                    polygon.setOnClickListener { _, _, _ ->
+
+                        if (polygon.strokeColor == SELECTED_STROKE) {
+                            applyPolygonStyle(polygon, false)
+                            selectedParsels.remove(parcel)
+                        } else {
+                            applyPolygonStyle(polygon, true)
+                            if (parcel !in selectedParsels) {
+                                selectedParsels.add(parcel)
+                            }
+                        }
+
+                        selectedWtgs.clear()
+                        selectedWtgs.addAll(collectWtgs())
+
+                        map.invalidate()
+                        true
+                    }
+
+                    map.overlays.add(polygon)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("Mahdwart", "Projektdatei konnte nicht geladen werden", e)
+            Toast.makeText(
+                requireContext(),
+                R.string.error_geojson_load,
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun applyPolygonStyle(polygon: Polygon, selected: Boolean) {
+        if (selected) {
+            polygon.strokeColor = SELECTED_STROKE
+            polygon.fillColor = 0x55FFC107
+        } else {
+            polygon.strokeColor = 0xFF2A6274.toInt()
+            polygon.fillColor = 0x555993A7
+        }
+    }
+
+    private fun collectWtgs(): Set<String> =
+        selectedParsels
+            .flatMap { it.split(",") }
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .flatMapTo(linkedSetOf()) { parcelToWtgs[it].orEmpty() }
     private fun getSelectedDate(): String =
         selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
-
 
     private fun getTime(timePicker: TimePicker): String {
         return "%02d:%02d".format(
@@ -228,7 +221,6 @@ class MahdwartFragment : Fragment() {
             timePicker.minute
         )
     }
-
 
     private fun setupClickListeners() {
 
@@ -245,16 +237,33 @@ class MahdwartFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val fragment = SendDialogFragment()
-
-            val startDate = getSelectedDate()
-            val startTime = getTime(binding.timePickerStart)
-
             val agriculturalType = when (binding.toggleType.checkedButtonId) {
                 R.id.radioGrass -> "Mahd"
                 R.id.radioFarming -> "Ernte"
                 else -> ""
             }
+
+            // Ohne Bewirtschaftungsform nicht weiter
+            if (agriculturalType.isEmpty()) {
+
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.select_type_title)
+                    .setMessage(R.string.select_type_message)
+                    .setPositiveButton(R.string.understood, null)
+                    .show()
+
+                return@setOnClickListener
+            }
+
+            selectedWtgs.clear()
+            selectedWtgs.addAll(collectWtgs())
+            if (selectedWtgs.isEmpty()) {
+                Log.w("MahdwartDebug", "Keine WEA für $selectedParsels, Keys: ${parcelToWtgs.keys}")
+            }
+            val fragment = SendDialogFragment()
+
+            val startDate = getSelectedDate()
+            val startTime = getTime(binding.timePickerStart)
 
             fragment.arguments = Bundle().apply {
                 putStringArrayList("wtgs", ArrayList(selectedWtgs))
@@ -263,7 +272,7 @@ class MahdwartFragment : Fragment() {
                 putString("startDate", startDate)
                 putString("startTime", startTime)
                 putString("agriculturalType", agriculturalType)
-                putString("siteattentand", siteattentand)
+                putString("siteattendant", siteattendant)
             }
 
             Log.d("MahdwartDebug", "WTGs: $selectedWtgs")
@@ -271,7 +280,7 @@ class MahdwartFragment : Fragment() {
             Log.d("MahdwartDebug", "Start date: $startDate")
             Log.d("MahdwartDebug", "Start time: $startTime")
             Log.d("MahdwartDebug", "Agricultural type: $agriculturalType")
-            Log.d("MahdwartDebug", "Site attendant: $siteattentand")
+            Log.d("MahdwartDebug", "Site attendant: $siteattendant")
             Log.d("MahdwartDebug", "Email: $projectContacts")
 
             parentFragmentManager
@@ -282,107 +291,123 @@ class MahdwartFragment : Fragment() {
         }
     }
 
-
     private fun loadWindmills(map: MapView) {
-
-        val json =
-            requireContext()
+        try {
+            val json = requireContext()
                 .assets
                 .open("points_only.geojson")
                 .bufferedReader()
                 .use { it.readText() }
 
-        val geoJson = JSONObject(json)
-        val features = geoJson.getJSONArray("features")
+            val geoJson = JSONObject(json)
+            val features = geoJson.getJSONArray("features")
 
-        for (i in 0 until features.length()) {
+            for (i in 0 until features.length()) {
 
-            val feature = features.getJSONObject(i)
-            val geometry = feature.getJSONObject("geometry")
-            val properties = feature.getJSONObject("properties")
+                val feature = features.getJSONObject(i)
+                val geometry = feature.getJSONObject("geometry")
+                val properties = feature.getJSONObject("properties")
 
-            if (geometry.getString("type") == "Point") {
+                if (geometry.getString("type") == "Point") {
 
-                val coordinates = geometry.getJSONArray("coordinates")
-                val lon = coordinates.getDouble(0)
-                val lat = coordinates.getDouble(1)
-                val point = GeoPoint(lat, lon)
-                val weaNr = properties.optInt("WEA_Nr")
-                val weaType = properties.optString("WEA_Typ")
-                val gemarkung = properties.optString("Gemarkung")
-                val flur = properties.optInt("Flur")
-                val flurstueck = properties.optString("Flurstueck")
+                    val coordinates = geometry.getJSONArray("coordinates")
+                    val lon = coordinates.getDouble(0)
+                    val lat = coordinates.getDouble(1)
+                    val point = GeoPoint(lat, lon)
+                    val weaNr = properties.optInt("WEA_Nr")
+                    val weaType = properties.optString("WEA_Typ")
+                    val gemarkung = properties.optString("Gemarkung")
+                    val flur = properties.optInt("Flur")
+                    val flurstueck = properties.optString("Flurstueck")
 
-                val drawable =
-                    ContextCompat.getDrawable(requireContext(), R.drawable.windkraftanlage)
+                    val drawable =
+                        ContextCompat.getDrawable(requireContext(), R.drawable.windkraftanlage)
 
-                val scaled =
-                    drawable?.let {
+                    val scaled =
+                        drawable?.let {
+                            val bitmap = (it as BitmapDrawable).bitmap
+                            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 40, 40, false)
+                            scaledBitmap.toDrawable(resources)
+                        }
 
-                        val bitmap = (it as BitmapDrawable).bitmap
+                    val marker =
+                        Marker(map).apply {
+                            position = point
+                            setAnchor(
+                                Marker.ANCHOR_CENTER,
+                                Marker.ANCHOR_BOTTOM
+                            )
+                            title = "WEA $weaNr"
+                            icon = scaled
+                        }
 
-                        val scaledBitmap =
-                            Bitmap.createScaledBitmap(bitmap, 40, 40, false)
-                        scaledBitmap.toDrawable(resources)
-                    }
+                    marker.setOnMarkerClickListener { _, _ ->
 
-                val marker =
-                    Marker(map).apply {
-                        position = point
-                        setAnchor(
-                            Marker.ANCHOR_CENTER,
-                            Marker.ANCHOR_BOTTOM
-                        )
-                        title = "WEA $weaNr"
-                        icon = scaled
-                    }
-
-                marker.setOnMarkerClickListener { _, _ ->
-
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("WEA $weaNr")
-                        .setIcon(R.drawable.windkraftanlage)
-                        .setMessage(
-                            """
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle("WEA $weaNr")
+                            .setIcon(R.drawable.windkraftanlage)
+                            .setMessage(
+                                """
                                 Typ: $weaType
-                        
+
                                 Gemarkung: $gemarkung
                                 Flur: $flur
                                 Flurstück: $flurstueck
                                 """.trimIndent()
-                        )
-                        .setPositiveButton("Schließen", null)
-                        .show()
+                            )
+                            .setPositiveButton("Schließen", null)
+                            .show()
 
-                    true
+                        true
+                    }
+
+                    map.overlays.add(marker)
                 }
-
-                map.overlays.add(marker)
             }
+        } catch (e: Exception) {
+            Log.e("Mahdwart", "Windkraftanlagen konnten nicht geladen werden", e)
+            Toast.makeText(
+                requireContext(),
+                R.string.error_geojson_load,
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
     private fun resetSelection() {
+        val b = _binding ?: return
+
         selectedWtgs.clear()
         selectedParsels.clear()
 
         selectedDate = LocalDate.now()
-        binding.calendarView3.date = System.currentTimeMillis()
+        b.calendarView3.date = System.currentTimeMillis()
 
-        binding.map.invalidate()
+        // Polygone optisch zurücksetzen
+        b.map.overlays
+            .filterIsInstance<Polygon>()
+            .forEach { applyPolygonStyle(it, false) }
+
+        b.map.invalidate()
     }
 
     override fun onResume() {
         super.onResume()
-        binding.map.onResume()
+        _binding?.map?.onResume()
     }
 
     override fun onPause() {
         super.onPause()
-        binding.map.onPause()
+        _binding?.map?.onPause()
     }
 
+    override fun onDestroyView() {
+        _binding?.map?.onDetach()
+        _binding = null
+        super.onDestroyView()
+    }
 
-
-
+    private companion object {
+        const val SELECTED_STROKE = 0xFFFFC107.toInt()
+    }
 }
