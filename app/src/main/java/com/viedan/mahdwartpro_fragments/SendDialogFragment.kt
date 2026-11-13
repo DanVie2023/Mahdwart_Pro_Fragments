@@ -77,7 +77,6 @@ class SendDialogFragment : Fragment() {
 
     private companion object {
         const val SMTP_USER = "Mahdwart@gmail.com"
-
         const val SMTP_PASSWORD = "ozes qscp asrd lbyz"
     }
 
@@ -138,31 +137,27 @@ class SendDialogFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.InputTextEmailSubject.setText(
-            "Windpark Wasbek-Ehndorf - Mahd-/Ernteereignis"
+            getString(R.string.SDFkt_Mailtitle)
         )
 
         binding.InputTextEmailBody.setText(
             buildString {
-                appendLine("Sehr geehrte Damen und Herren,")
+                appendLine(getString(R.string.SDFkt_Mailtext_Line1))
                 appendLine()
-                appendLine("im Windpark Wasbek-Ehndorf ist eine $agriculturalType geplant.")
+                appendLine(getString(R.string.SDFkt_Mailtext_Line2, agriculturalType))
                 appendLine()
-                appendLine("Geplantes Datum:")
-                appendLine(startDate)
-                appendLine("Geplante Startzeit:")
-                appendLine(startTime)
+                appendLine(getString(R.string.SDFkt_Mailtext_Line3, startDate))
+                appendLine(getString(R.string.SDFkt_Mailtext_Line4, startTime))
                 appendLine()
-                appendLine("Folgende Windenergieanlagen werden bis zum $endDate von einer Stunde vor Sonnenaufgang bis eine Stunde nach Sonnenuntergang abgeschaltet:")
+                appendLine(getString(R.string.SDFkt_Mailtext_Line5, endDate))
                 appendLine()
                 wtgs.forEach {
-                    appendLine("• WEA $it")
+                    appendLine(getString(R.string.SDFkt_Mailtext_Line6, it))
                 }
                 appendLine()
-                appendLine(
-                    "Bitte entnehmen Sie die relevanten Informationen aus dem beiliegenden PDF-Dokument."
-                )
+                appendLine(getString(R.string.SDFkt_Mailtext_Line7))
                 appendLine()
-                appendLine("Vielen Dank.")
+                appendLine(getString(R.string.SDFkt_Mailtext_Line8))
             }
         )
 
@@ -753,7 +748,6 @@ class SendDialogFragment : Fragment() {
                     val (g, f, fs) = match.destructured
                     ParcelInfo(gemarkung = g, flur = f, flurstueck = fs)
                 } else {
-                    // Nicht verwerfen: Rohtext ins PDF, damit der Eintrag sichtbar bleibt
                     android.util.Log.w("Parcel", "Ungültiges Format: '$part'")
                     ParcelInfo(gemarkung = "?", flur = "?", flurstueck = part)
                 }

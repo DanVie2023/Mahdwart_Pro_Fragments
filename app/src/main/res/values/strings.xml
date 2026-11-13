@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mahdwart Pro - Fragments</string>
+    <string name="app_name">Mahdwart Pro</string>
     <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
 <!--    Put the correct osm path in!!-->
     <string name="osmdroid_config" translatable="false">/data/data/.../cache/osmdroid/</string>
@@ -47,7 +47,15 @@
     <string name="error_geojson_load">Kartendaten konnten nicht geladen werden.</string>
     <string name="select_type_title">Bewirtschaftungsform fehlt</string>
     <string name="select_type_message">Bitte wähle zuerst „Mahd“ oder „Ernte“ aus.</string>
-
+    <string name="SDFkt_Mailtext_Line1">Sehr geehrte Damen und Herren,</string>
+    <string name="SDFkt_Mailtext_Line2">im Windpark Wasbek-Ehndorf hat eine %1$s begonnen.</string>
+    <string name="SDFkt_Mailtext_Line3">Datum: %1$s</string>
+    <string name="SDFkt_Mailtext_Line4">Startzeit: %1$s</string>
+    <string name="SDFkt_Mailtext_Line5">Folgende Windenergieanlagen werden bis zum %1$s von einer Stunde vor Sonnenaufgang bis eine Stunde nach Sonnenuntergang abgeschaltet:</string>
+    <string name="SDFkt_Mailtext_Line6">• WEA %1$s</string>
+    <string name="SDFkt_Mailtext_Line7">Bitte entnehmen Sie die relevanten Informationen aus dem beiliegenden PDF-Dokument.</string>
+    <string name="SDFkt_Mailtext_Line8">Vielen Dank.</string>
+    <string name="SDFkt_Mailtitle">Windpark Wasbek-Ehndorf - Mahd-/Ernteereignis</string>
 
 
 </resources>

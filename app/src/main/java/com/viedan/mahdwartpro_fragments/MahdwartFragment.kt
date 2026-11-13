@@ -93,7 +93,7 @@ class MahdwartFragment : Fragment() {
         map.invalidate()
     }
 
-    /** Lädt Flurstücke und Metadaten aus der GeoJSON-Datei. Fehler führen nicht zum Absturz. */
+    /** Loading data from GeoJSON-Datei.*/
     private fun loadProjectData(map: MapView) {
         try {
             val geoJsonString = requireContext()
@@ -106,8 +106,7 @@ class MahdwartFragment : Fragment() {
 
             val metadata = geoJson.getJSONObject("metadata")
 
-            // Der JSON-Schlüssel bleibt "siteattendand", so steht er in der GeoJSON-Datei
-            siteattendant = metadata.optString("siteattendand", "")
+            siteattendant = metadata.optString("siteattendant", "")
             projectContacts = metadata.optJSONArray("email") ?: JSONArray()
 
             val features = geoJson.getJSONArray("features")
@@ -161,7 +160,7 @@ class MahdwartFragment : Fragment() {
                     polygon.points = points
                     polygon.strokeWidth = 4f
 
-                    // Bereits gewählte Flurstücke beim Neuaufbau der View wieder markieren
+                    // selected Areas repare after view-rebuild
                     applyPolygonStyle(polygon, parcel in selectedParsels)
 
                     polygon.setOnClickListener { _, _, _ ->
@@ -243,7 +242,7 @@ class MahdwartFragment : Fragment() {
                 else -> ""
             }
 
-            // Ohne Bewirtschaftungsform nicht weiter
+            // Stops moving forward without selecting Bewirtschaftungsform
             if (agriculturalType.isEmpty()) {
 
                 MaterialAlertDialogBuilder(requireContext())
@@ -383,7 +382,7 @@ class MahdwartFragment : Fragment() {
         selectedDate = LocalDate.now()
         b.calendarView3.date = System.currentTimeMillis()
 
-        // Polygone optisch zurücksetzen
+        // reset polygon
         b.map.overlays
             .filterIsInstance<Polygon>()
             .forEach { applyPolygonStyle(it, false) }
