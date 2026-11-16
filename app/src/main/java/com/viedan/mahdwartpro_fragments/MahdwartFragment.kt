@@ -28,6 +28,8 @@ import org.osmdroid.views.overlay.Polygon
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+import android.widget.NumberPicker
+
 @Suppress("DEPRECATION")
 class MahdwartFragment : Fragment() {
 
@@ -44,6 +46,7 @@ class MahdwartFragment : Fragment() {
 
     private var selectedDate: LocalDate = LocalDate.now()
     private var siteattendant: String = ""
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,9 +87,22 @@ class MahdwartFragment : Fragment() {
 
         loadProjectData(map)
 
+        map.setMinZoomLevel(10.0)
         map.controller.apply {
-            setZoom(16.0)
+            setZoom(15.0)
             setCenter(GeoPoint(54.063065, 9.878683))
+        }
+
+        val timePickerStart = binding.timePickerStart
+
+        val minuteId = resources.getIdentifier("minute", "id", "android")
+
+        val minutePicker = timePickerStart.findViewById<NumberPicker>(minuteId)
+
+        minutePicker?.apply {
+            minValue = 0
+            maxValue = 3
+            displayedValues = arrayOf("00", "15", "30", "45")
         }
 
         loadWindmills(map)
