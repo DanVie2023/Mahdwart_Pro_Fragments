@@ -7,8 +7,46 @@ import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * Generates the PDF form "Mitteilung über Mahd- / Ernteereignisse" (notification of
+ * mowing / harvesting events) for the wind farm Wasbek-Ehndorf.
+ *
+ * The PDF is drawn manually on an A4 canvas using [PdfDocument]. It consists of a form
+ * header (title, subtitle, info row, table header) followed by one table row per event.
+ * If the rows do not fit on one page, additional pages are added and the header is
+ * repeated on each of them.
+ *
+ * Usage: val file = EventPdfGenerator(context).generate(...)
+ *
+ * This class performs blocking file I/O and must therefore not be called on the main thread.
+ *
+ * @property context Used to resolve color resources and to locate the cache directory.
+ *   Pass the application context to avoid holding a reference to a UI component.
+ */
 class EventPdfGenerator(private val context: Context) {
 
+    /**
+     * Creates the PDF and writes it to the app's cache directory.
+     *
+     * Each entry in [events] becomes one table row and must contain 7 values in this order:
+     * 1. Flurstück (parcel number)
+     * 2. Flur (district)
+     * 3. Gemarkung (cadastral area)
+     * 4. Bewirtschaftungsform (type of farming, e.g. "Mahd" or "Ernte")
+     * 5. Start date (dd.MM.yyyy)
+     * 6. Start time (HH:mm)
+     * 7. End date of the measure (dd.MM.yyyy)
+     *
+     * Missing values are rendered as empty cells; additional values are ignored.
+     *
+     * @param reportDate Date of the notification, shown in the info row.
+     * @param parkAttendant Name of the park attendant (or deputy), shown in the info row.
+     * @param events Table rows, one list of 7 strings per event.
+     * @param fileDate Date used to build the file name (`Mahdereignis_<fileDate>.pdf`).
+     * @return The generated PDF file inside [Context.getCacheDir]. An existing file with
+     *   the same name is overwritten.
+     * @throws java.io.IOException If the file cannot be written.
+     */
     fun generate(
         reportDate: String,
         parkAttendant: String,
@@ -22,6 +60,7 @@ class EventPdfGenerator(private val context: Context) {
         var page = document.startPage(pageInfo)
         var canvas = page.canvas
 
+        //----- Paints -----
         val titlePaint = Paint().apply {
             color = pdfTextColor
             textSize = 16f
@@ -65,11 +104,11 @@ class EventPdfGenerator(private val context: Context) {
             style = Paint.Style.STROKE
         }
 
-        // Layout-constants
+        // ---- Layout-constants -----
         val marginLeft = 51f
         val tableRight = 557f
 
-        // width (Summe = tableRight - marginLeft = 506)
+        // width (Sum = tableRight - marginLeft = 506)
         val wFlurstueck = 55f
         val wFlur = 40f
         val wGemarkung = 75f
@@ -77,7 +116,6 @@ class EventPdfGenerator(private val context: Context) {
         val wBeginnDatum = 80f
         val wStartTime = 66f
 
-        // colX[i] = linke Kante der Spalte i, colX[7] = rechte Kante der Tabelle
         val colX = floatArrayOf(
             marginLeft,
             marginLeft + wFlurstueck,
@@ -90,6 +128,7 @@ class EventPdfGenerator(private val context: Context) {
         )
         val columnCount = colX.size - 1 // 7
 
+        // Row heights
         val titleRowH = 34f
         val subtitleRowH = 26f
         val infoRowH = 37f
@@ -98,15 +137,25 @@ class EventPdfGenerator(private val context: Context) {
         val dataRowH = 19.7f
         val pageBottomLimit = 792 - 40f
 
+        /**
+         * Draws [text] horizontally centered between [left] and [right] at the given
+         * [baselineY]. Uses the current value of [canvas], so it also works after a page break.
+         */
         fun centeredText(text: String, left: Float, right: Float, baselineY: Float, paint: Paint) {
             canvas.drawText(text, (left + right) / 2f, baselineY, paint)
         }
 
+        /**
+         * Draws the complete form header (title, subtitle, info row and table header)
+         * on the current page.
+         *
+         * @return The y position where the first data row starts.
+         */
         fun drawHeader(): Float {
             canvas.drawColor(pdfBackground)
             var y = 40f
 
-            // Titelzeile
+            // title row
             canvas.drawRect(marginLeft, y, tableRight, y + titleRowH, linePaint)
             centeredText(
                 "Windpark Wasbek-Ehndorf",
@@ -116,7 +165,7 @@ class EventPdfGenerator(private val context: Context) {
             )
             y += titleRowH
 
-            // Untertitel
+            // subtitle row
             canvas.drawRect(marginLeft, y, tableRight, y + subtitleRowH, linePaint)
             centeredText(
                 "Mitteilung über Mahd- / Ernteereignisse",
@@ -126,7 +175,7 @@ class EventPdfGenerator(private val context: Context) {
             )
             y += subtitleRowH
 
-            // Infozeile: Label | Wert | Label | Wert
+            // infoline: Label | Wert | Label | Wert
             canvas.drawRect(marginLeft, y, tableRight, y + infoRowH, linePaint)
             canvas.drawLine(colX[2], y, colX[2], y + infoRowH, linePaint)
             canvas.drawLine(colX[4], y, colX[4], y + infoRowH, linePaint)
@@ -140,17 +189,17 @@ class EventPdfGenerator(private val context: Context) {
             canvas.drawText(parkAttendant, colX[5] + 4f, y + 21f, valuePaint)
             y += infoRowH
 
-            // Tabellenkopf
+            // tablehead
             val headerTotalH = headerRow1H + headerRow2H
             canvas.drawRect(marginLeft, y, tableRight, y + headerTotalH, linePaint)
 
-            // Senkrechte Trennlinien über die ganze Kopfhöhe
+            // Vertical separators across the full header height
             for (i in 1..4) canvas.drawLine(colX[i], y, colX[i], y + headerTotalH, linePaint)
             canvas.drawLine(colX[6], y, colX[6], y + headerTotalH, linePaint)
 
-            // Waagerechte Linie nur unter "Mahd- / Erntebeginn"
+            // Horizontal separator only below "Mahd- / Erntebeginn"
             canvas.drawLine(colX[4], y + headerRow1H, colX[6], y + headerRow1H, linePaint)
-            // Trennlinie Datum/Uhrzeit
+            // Separator between "Datum" and "Uhrzeit"
             canvas.drawLine(colX[5], y + headerRow1H, colX[5], y + headerTotalH, linePaint)
 
             val midY = y + headerTotalH / 2f
@@ -187,13 +236,15 @@ class EventPdfGenerator(private val context: Context) {
 
         var y = drawHeader()
 
-        // Eine Zeile pro Eintrag; bei voller Seite wird automatisch eine neue begonnen
+        // --- Data rows ---------------------------------------------------------------------
+        // One row per event. When the current page is full, a new page is started
+        // and the header is repeated.
         for (e in events) {
             if (y + dataRowH > pageBottomLimit) {
                 document.finishPage(page)
                 page = document.startPage(pageInfo)
                 canvas = page.canvas
-                y = drawHeader() // Kopf auf jeder neuen Seite wiederholen
+                y = drawHeader()
             }
 
             canvas.drawRect(marginLeft, y, tableRight, y + dataRowH, linePaint)
@@ -201,6 +252,7 @@ class EventPdfGenerator(private val context: Context) {
                 canvas.drawLine(colX[idx], y, colX[idx], y + dataRowH, linePaint)
             }
 
+            // Cell contents, centered in their column; missing values become empty cells
             for (c in 0 until columnCount) {
                 centeredText(
                     e.getOrElse(c) { "" },
@@ -215,7 +267,7 @@ class EventPdfGenerator(private val context: Context) {
 
         document.finishPage(page)
 
-        // Im temporären Cache-Verzeichnis der App speichern
+        // Write to the app's temporary cache directory
         val file = File(context.cacheDir, "Mahdereignis_$fileDate.pdf")
         try {
             FileOutputStream(file).use { out -> document.writeTo(out) }

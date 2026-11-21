@@ -7,6 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import com.viedan.mahdwartpro_fragments.databinding.FragmentSettingsBinding
 
+/**
+ * Settings screen of the app.
+ *
+ * Currently only a placeholder: it inflates its layout ([FragmentSettingsBinding]) but
+ * does not contain any logic yet.
+ */
 class SettingsFragment : Fragment() {
 
     private lateinit var binding: FragmentSettingsBinding
@@ -22,6 +28,7 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // TODO: Set up the settings UI (listeners, stored values) here once it
     }
 
 }

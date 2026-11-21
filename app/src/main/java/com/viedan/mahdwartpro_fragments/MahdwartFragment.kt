@@ -30,21 +30,47 @@ import java.time.format.DateTimeFormatter
 
 import android.widget.NumberPicker
 
+/**
+ * Main screen of the app.
+ *
+ * Shows a map of the wind farm Wasbek-Ehndorf. The user selects one or more parcels on the
+ * map, a date, a start time and the type of farming ("Mahd" or "Ernte") and then opens
+ * [SendDialogFragment] to send the notification by e-mail.
+ *
+ * Data sources (both in the app's assets):
+ * - `WasbekEhndorfProjectfile.geojson`: parcel polygons (`MultiPolygon` features with the
+ *   properties `wtg` and `parcel`) and metadata (park attendant, project e-mail contacts)
+ * - `points_only.geojson`: positions of the wind turbines (`Point` features)
+ *
+ * The selection is kept in fields of this fragment. While [SendDialogFragment] is on top,
+ * the view of this fragment is destroyed and later rebuilt, so the selection is re-applied
+ * to the polygons when the map is loaded again. It is cleared when the fragment result
+ * `"reset_selection"` is received.
+ */
 @Suppress("DEPRECATION")
 class MahdwartFragment : Fragment() {
 
     private var _binding: FragmentMahdwartBinding? = null
+
+    /** Only valid between [onCreateView] and [onDestroyView]. */
     private val binding get() = _binding!!
 
+    /** Wind turbines (WTG numbers) affected by the currently selected parcels. */
     private val selectedWtgs = mutableSetOf<String>()
+
+    /** Raw `parcel` property of each selected polygon. One entry can contain several */
     private val selectedParsels = mutableListOf<String>()
 
+    /** Lookup: single parcel name (e.g. `"G4572-F12-FS46"`) to the WTG numbers it affects. */
     private val parcelToWtgs = mutableMapOf<String, Set<String>>()
 
-    // Allgemeine Kontakte des Projekts
+    /** Project-wide e-mail contacts from the GeoJSON metadata (JSON array of name/address). */
     private var projectContacts = JSONArray()
 
+    /** Start date chosen in the calendar; defaults to today. */
     private var selectedDate: LocalDate = LocalDate.now()
+
+    /** Name of the park attendant from the GeoJSON metadata, printed on the PDF. */
     private var siteattendant: String = ""
 
 
@@ -61,6 +87,7 @@ class MahdwartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Cleared by SendDialogFragment after sending or closing
         parentFragmentManager.setFragmentResultListener(
             "reset_selection",
             viewLifecycleOwner
@@ -71,10 +98,11 @@ class MahdwartFragment : Fragment() {
         setupClickListeners()
 
         binding.calendarView3.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            // month ist hier 0-basiert (Januar = 0)
+            // month is 0-based here (January = 0)
             selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
         }
 
+        // osmdroid needs its configuration (tile cache, user agent) loaded before the map is used
         Configuration.getInstance().load(
             requireContext(),
             PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -93,6 +121,8 @@ class MahdwartFragment : Fragment() {
             setCenter(GeoPoint(54.063065, 9.878683))
         }
 
+        // Restrict the minute picker to quarter hours (00, 15, 30, 45).
+        // The inner "minute" view only exists in the spinner style of the TimePicker.
         val timePickerStart = binding.timePickerStart
 
         val minuteId = resources.getIdentifier("minute", "id", "android")
@@ -109,7 +139,16 @@ class MahdwartFragment : Fragment() {
         map.invalidate()
     }
 
-    /** Loading data from GeoJSON-Datei.*/
+    /**
+     * Loads the parcel polygons and the metadata from the project GeoJSON and adds the
+     * polygons as clickable overlays to [map].
+     *
+     * Fills [parcelToWtgs], [siteattendant] and [projectContacts]. Only features of type
+     * `MultiPolygon` are used; others are skipped. Errors while reading or parsing are
+     * logged and reported with a toast instead of crashing the app.
+     *
+     * @param map The map the polygons are added to.
+     */
     private fun loadProjectData(map: MapView) {
         try {
             val geoJsonString = requireContext()
@@ -148,6 +187,7 @@ class MahdwartFragment : Fragment() {
                     .filter { it.isNotEmpty() }
                     .toSet()
 
+                // Remember which WTGs each single parcel affects
                 parcels.forEach { parcelName ->
                     parcelToWtgs[parcelName] =
                         parcelToWtgs[parcelName].orEmpty() + wtgs
@@ -157,6 +197,8 @@ class MahdwartFragment : Fragment() {
 
                 for (p in 0 until multiPolygon.length()) {
 
+                    // Only the outer ring is used; holes are ignored.
+                    // GeoJSON order is [longitude, latitude].
                     val polygonCoords = multiPolygon.getJSONArray(p)
                     val outerRing = polygonCoords.getJSONArray(0)
                     val points = mutableListOf<GeoPoint>()
@@ -176,7 +218,7 @@ class MahdwartFragment : Fragment() {
                     polygon.points = points
                     polygon.strokeWidth = 4f
 
-                    // selected Areas repare after view-rebuild
+                    // Re-apply the selection after the view has been rebuilt
                     applyPolygonStyle(polygon, parcel in selectedParsels)
 
                     polygon.setOnClickListener { _, _, _ ->
@@ -211,6 +253,9 @@ class MahdwartFragment : Fragment() {
         }
     }
 
+    /**
+     * Colors [polygon] as selected (yellow) or unselected (blue-grey).
+     */
     private fun applyPolygonStyle(polygon: Polygon, selected: Boolean) {
         if (selected) {
             polygon.strokeColor = SELECTED_STROKE
@@ -221,26 +266,42 @@ class MahdwartFragment : Fragment() {
         }
     }
 
+    /**
+     * Calculates the wind turbines affected by the currently selected parcels.
+     *
+     * Entries in [selectedParsels] may contain several comma-separated parcels, so they are
+     * split first, otherwise the lookup in [parcelToWtgs] would not find them.
+     *
+     * @return The WTG numbers without duplicates, in the order they were found.
+     */
     private fun collectWtgs(): Set<String> =
         selectedParsels
             .flatMap { it.split(",") }
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .flatMapTo(linkedSetOf()) { parcelToWtgs[it].orEmpty() }
+
+    /** Returns the selected start date formatted as `dd.MM.yyyy`. */
     private fun getSelectedDate(): String =
         selectedDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))
 
+    /** Returns the time of [timePicker] formatted as `HH:mm`. */
     private fun getTime(timePicker: TimePicker): String {
         return "%02d:%02d".format(
             timePicker.hour,
-            timePicker.minute
+            timePicker.minute * 15
         )
     }
 
+    /**
+     * Sets up the "send" button. It validates the input (at least one parcel, a type of
+     * farming) and then opens [SendDialogFragment] with the selection as arguments.
+     */
     private fun setupClickListeners() {
 
         binding.buttonSelected.setOnClickListener {
 
+            // At least one parcel has to be selected
             if (selectedParsels.isEmpty()) {
 
                 MaterialAlertDialogBuilder(requireContext())
@@ -258,7 +319,7 @@ class MahdwartFragment : Fragment() {
                 else -> ""
             }
 
-            // Stops moving forward without selecting Bewirtschaftungsform
+            /// Do not continue without a type of farming (Bewirtschaftungsform)
             if (agriculturalType.isEmpty()) {
 
                 MaterialAlertDialogBuilder(requireContext())
@@ -270,6 +331,7 @@ class MahdwartFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            // Recalculate right before sending so the list is never stale
             selectedWtgs.clear()
             selectedWtgs.addAll(collectWtgs())
             if (selectedWtgs.isEmpty()) {
@@ -280,6 +342,7 @@ class MahdwartFragment : Fragment() {
             val startDate = getSelectedDate()
             val startTime = getTime(binding.timePickerStart)
 
+            // Keys must match the ones read in SendDialogFragment.onCreate()
             fragment.arguments = Bundle().apply {
                 putStringArrayList("wtgs", ArrayList(selectedWtgs))
                 putStringArrayList("parcel", ArrayList(selectedParsels))
@@ -306,6 +369,15 @@ class MahdwartFragment : Fragment() {
         }
     }
 
+    /**
+     * Loads the wind turbine positions from `points_only.geojson` and adds a marker for
+     * each `Point` feature to [map]. Tapping a marker shows a dialog with the turbine's
+     * details (type, Gemarkung, Flur, Flurstück).
+     *
+     * Errors while reading or parsing are logged and reported with a toast.
+     *
+     * @param map The map the markers are added to.
+     */
     private fun loadWindmills(map: MapView) {
         try {
             val json = requireContext()
@@ -338,6 +410,7 @@ class MahdwartFragment : Fragment() {
                     val drawable =
                         ContextCompat.getDrawable(requireContext(), R.drawable.windkraftanlage)
 
+                    // Scale the icon to 40x40 px for the map
                     val scaled =
                         drawable?.let {
                             val bitmap = (it as BitmapDrawable).bitmap
@@ -389,6 +462,10 @@ class MahdwartFragment : Fragment() {
         }
     }
 
+    /**
+     * Clears the whole selection (parcels, WTGs, date) and resets the polygon colors.
+     * Does nothing if the view no longer exists.
+     */
     private fun resetSelection() {
         val b = _binding ?: return
 
@@ -416,6 +493,7 @@ class MahdwartFragment : Fragment() {
         _binding?.map?.onPause()
     }
 
+    // Release the map's resources and drop the binding to avoid leaking the view
     override fun onDestroyView() {
         _binding?.map?.onDetach()
         _binding = null
@@ -423,6 +501,7 @@ class MahdwartFragment : Fragment() {
     }
 
     private companion object {
+        /** Stroke color of a selected polygon; also used to detect the selected state. */
         const val SELECTED_STROKE = 0xFFFFC107.toInt()
     }
 }
